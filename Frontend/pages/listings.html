@@ -1,0 +1,1147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AquaMart - Listings & Requests</title>
+  <link
+          href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+          rel="stylesheet"
+  />
+  <link
+          rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+  />
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <link rel="stylesheet" href="../assets/css/navigation.css" />
+  <link rel="stylesheet" href="../assets/css/responsive.css" />
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      background: linear-gradient(to bottom right, #a6ffea, #596dcd);
+      min-height: 100vh;
+      margin: 0;
+    }
+    .main {
+      margin-left: 240px;
+      padding: 2rem;
+      min-height: 100vh;
+    }
+    .listing-card {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+      padding: 20px;
+      margin-bottom: 20px;
+      transition: all 0.3s ease;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .listing-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+    }
+    .status-badge {
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+    .status-active {
+      background-color: rgba(28, 200, 138, 0.2);
+      color: #1cc88a;
+    }
+    .status-pending {
+      background-color: rgba(246, 194, 62, 0.2);
+      color: #f6c23e;
+    }
+    .status-closed {
+      background-color: rgba(231, 74, 59, 0.2);
+      color: #e74a3b;
+    }
+    .empty-state {
+      text-align: center;
+      padding: 3rem;
+      color: #666;
+    }
+    .empty-state i {
+      font-size: 4rem;
+      color: #fec83c;
+      margin-bottom: 1rem;
+    }
+    .tab-link {
+      background: none !important;
+      border: none !important;
+      transition: all 0.3s ease !important;
+    }
+    .tab-link:hover {
+      background-color: rgba(254, 200, 60, 0.1) !important;
+      color: #fec83c !important;
+    }
+    .tab-link.active {
+      background-color: #fec83c !important;
+      color: #2c2a7b !important;
+      font-weight: bold !important;
+    }
+    @media (max-width: 768px) {
+      .main {
+        margin-left: 0;
+        padding: 1rem;
+      }
+    }
+    /* Payment modal styles */
+    .pay-brand {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .pay-brand .lock {
+      color: #198754;
+    }
+    .pay-accepted img {
+      height: 20px;
+      margin-left: 6px;
+      opacity: 0.8;
+    }
+    .pay-summary {
+      background: #f8f9fa;
+      border-radius: 10px;
+      padding: 12px;
+    }
+    .pay-field .form-label {
+      font-size: 0.9rem;
+      color: #6c757d;
+    }
+    .pay-field .input-group-text {
+      background: #fff;
+    }
+    .pay-help {
+      font-size: 0.8rem;
+      color: #6c757d;
+    }
+    .pay-divider {
+      border-top: 1px dashed #dee2e6;
+      margin: 12px 0;
+    }
+    .pay-badges img {
+      height: 24px;
+      opacity: 0.85;
+    }
+    .pay-footer-note {
+      font-size: 0.8rem;
+      color: #6c757d;
+    }
+  </style>
+</head>
+<body>
+<!-- Sidebar -->
+<div class="sidebar d-flex flex-column">
+  <h4>🐡 <strong>AquaMart</strong></h4>
+  <nav class="nav flex-column mt-4">
+    <a class="nav-link" href="dashboard.html" data-page="dashboard"
+    >🏠 Dashboard</a
+    >
+    <a class="nav-link" href="adoptFriend.html" data-page="adopt"
+    >💛 Buy a Friend</a
+    >
+    <a class="nav-link" href="myItem.html" data-page="myItem"
+    >🐟 My Items</a
+    >
+    <a class="nav-link" href="listings.html" data-page="listings"
+    >📄 Listings & Requests</a
+    >
+    <a class="nav-link" href="messages.html" data-page="messages"
+    >💬 Messages</a
+    >
+    <a class="nav-link" href="setting.html" data-page="setting"
+    >⚙️ Setting</a
+    >
+    <a
+            class="nav-link mt-auto"
+            href="#"
+            onclick="window.barkBuddyNav.logout(); return false;"
+    >🚪 Logout</a
+    >
+  </nav>
+</div>
+
+<!-- Main Content -->
+<div class="main">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h3>📄 Listings & Requests</h3>
+    <div>
+      <button
+              class="btn btn-primary me-2"
+              onclick="refreshListings.call(this, event)"
+      >
+        <i class="fas fa-sync-alt"></i> Refresh
+      </button>
+    </div>
+  </div>
+
+  <!-- Filter Tabs -->
+  <ul class="nav nav-tabs mb-4" id="filterTabs" role="tablist">
+    <li class="nav-item" role="presentation">
+      <button
+              class="nav-link tab-link active"
+              id="all-tab"
+              data-bs-toggle="tab"
+              data-bs-target="#all"
+              type="button"
+              role="tab"
+      >
+        All Listings
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button
+              class="nav-link tab-link"
+              id="cart-tab"
+              data-bs-toggle="tab"
+              data-bs-target="#myCart"
+              type="button"
+              role="tab"
+      >
+        My Cart
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button
+              class="nav-link tab-link"
+              id="adoption-tab"
+              data-bs-toggle="tab"
+              data-bs-target="#adoption"
+              type="button"
+              role="tab"
+      >
+        Buy Requests
+        <span
+                id="adoptionCount"
+                class="badge bg-light text-dark ms-1"
+                style="display: none"
+        >0</span
+        >
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button
+              class="nav-link tab-link"
+              id="request-tab"
+              data-bs-toggle="tab"
+              data-bs-target="#request"
+              type="button"
+              role="tab"
+      >
+        My Requests
+      </button>
+    </li>
+  </ul>
+
+  <!-- Tab Content -->
+  <div class="tab-content" id="filterTabsContent">
+    <!-- All Listings Tab -->
+    <div class="tab-pane fade show active" id="all" role="tabpanel">
+      <div id="allListings" class="row g-3">
+        <div class="col-12 text-center py-4">
+          <i class="fas fa-spinner fa-spin"></i> Loading listings...
+        </div>
+      </div>
+    </div>
+
+    <!-- Adoption Requests Tab -->
+    <div class="tab-pane fade" id="adoption" role="tabpanel">
+      <div id="adoptionRequestsContainer" class="mb-3"></div>
+    </div>
+
+    <!-- My Listings Tab -->
+    <div class="tab-pane fade" id="my" role="tabpanel">
+      <div class="empty-state">
+        <i class="fas fa-user"></i>
+        <h4>No Personal Listings</h4>
+        <p>
+          You haven't created any listings yet. Start by adding a fish to
+          sell.
+        </p>
+        <div>
+          <button
+                  class="btn btn-success me-2"
+                  onclick="window.barkBuddyNav.navigateToMyItems()"
+          >
+            <i class="fas fa-plus"></i> Add My Item
+          </button>
+        </div>
+      </div>
+    </div>
+    <!-- My Cart Tab -->
+    <div class="tab-pane fade" id="myCart" role="tabpanel">
+      <div id="myCartContainer" class="row g-3">
+        <div class="col-12 text-center py-4">
+          <i class="fas fa-shopping-cart"></i> Your cart is empty.
+        </div>
+      </div>
+    </div>
+
+    <!-- My Requests Tab -->
+    <div class="tab-pane fade" id="request" role="tabpanel">
+      <div id="myRequestsContainer">
+        <div class="text-center py-4">
+          <i class="fas fa-spinner fa-spin"></i> Loading your adoption
+          requests...
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Coming Soon Modal -->
+  <div class="modal fade" id="comingSoonModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">🚧 Coming Soon!</h5>
+          <button
+                  type="button"
+                  class="btn-close"
+                  data-bs-dismiss="modal"
+          ></button>
+        </div>
+        <div class="modal-body text-center">
+          <i class="fas fa-tools fa-3x text-warning mb-3"></i>
+          <h4>Feature Under Development</h4>
+          <p>
+            This feature is currently being developed and will be available
+            soon!
+          </p>
+          <div class="d-grid gap-2">
+            <button
+                    class="btn btn-primary"
+                    onclick="window.barkBuddyNav.navigateToAdopt()"
+            >
+              <i class="fas fa-heart"></i> Browse Items to Buy
+            </button>
+
+            <button
+                    class="btn btn-success"
+                    onclick="window.barkBuddyNav.navigateToMyItems()"
+            >
+              <i class="fas fa-fish"></i> Manage My Items
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Payment Modal -->
+<div class="modal fade" id="paymentModal" tabindex="-1">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="pay-brand">
+          <span class="badge bg-dark">AquaMart Pay</span>
+          <span class="text-muted">Secure Checkout</span>
+          <i class="fas fa-lock lock" title="SSL Secured"></i>
+          <span class="pay-accepted ms-2">
+                <img
+                        src="https://upload.wikimedia.org/wikipedia/commons/0/04/Visa.svg"
+                        alt="Visa"
+                />
+                <img
+                        src="https://upload.wikimedia.org/wikipedia/commons/2/2a/Mastercard-logo.svg"
+                        alt="Mastercard"
+                />
+              </span>
+        </div>
+        <button
+                type="button"
+                class="btn-close"
+                data-bs-dismiss="modal"
+        ></button>
+      </div>
+      <div class="modal-body">
+        <div class="row g-3">
+          <div class="col-md-5">
+            <div class="pay-summary h-100">
+              <div class="d-flex align-items-center">
+                <img
+                        id="payItemImage"
+                        src=""
+                        alt="item"
+                        style="
+                        width: 64px;
+                        height: 64px;
+                        object-fit: cover;
+                        border-radius: 8px;
+                        margin-right: 12px;
+                      "
+                />
+                <div>
+                  <div id="payItemName" class="fw-semibold"></div>
+                  <div class="small text-muted">
+                    Unit: Rs. <span id="payItemPrice"></span> • Qty:
+                    <span id="payItemQty"></span>
+                  </div>
+                </div>
+              </div>
+              <div class="pay-divider"></div>
+              <div class="d-flex justify-content-between">
+                    <span>Subtotal</span
+                    ><span>Rs. <span id="paySubtotal"></span></span>
+              </div>
+              <div class="d-flex justify-content-between">
+                <span>Processing Fee</span><span>Rs. 0.00</span>
+              </div>
+              <div class="pay-divider"></div>
+              <div class="d-flex justify-content-between fw-bold">
+                    <span>Total</span
+                    ><span>Rs. <span id="payItemTotal"></span></span>
+              </div>
+              <div class="pay-divider"></div>
+              <div class="pay-footer-note">
+                <i class="fas fa-shield-alt"></i> We do not store your card
+                details. PCI-DSS compliant.
+              </div>
+            </div>
+          </div>
+          <div class="col-md-7">
+            <form id="paymentForm" class="needs-validation" novalidate>
+              <div class="pay-field mb-3">
+                <label class="form-label">Email for receipt</label>
+                <input
+                        type="email"
+                        class="form-control"
+                        id="payerEmail"
+                        placeholder="you@example.com"
+                />
+              </div>
+              <div class="pay-field mb-3">
+                <label class="form-label">Card Number</label>
+                <div class="input-group">
+                      <span class="input-group-text"
+                      ><i class="far fa-credit-card"></i
+                      ></span>
+                  <input
+                          type="text"
+                          class="form-control"
+                          id="cardNumber"
+                          placeholder="1234 5678 9012 3456"
+                          maxlength="19"
+                          required
+                  />
+                  <span
+                          class="input-group-text bg-white"
+                          id="cardBrandArea"
+                          title="Card brand"
+                  >
+                        <i
+                                id="cardBrandIcon"
+                                class="fab fa-cc-visa text-primary"
+                                style="display: none"
+                        ></i>
+                        <i
+                                id="cardBrandIconMc"
+                                class="fab fa-cc-mastercard text-danger"
+                                style="display: none"
+                        ></i>
+                      </span>
+                </div>
+                <div class="pay-help">
+                  Card must have exactly 16 digits.
+                </div>
+              </div>
+              <div class="row g-3">
+                <div class="col-6">
+                  <div class="pay-field">
+                    <label class="form-label">Expiry (MM/YY)</label>
+                    <input
+                            type="text"
+                            class="form-control"
+                            id="cardExpiry"
+                            placeholder="MM/YY"
+                            maxlength="5"
+                            required
+                    />
+                  </div>
+                </div>
+                <div class="col-6">
+                  <div class="pay-field">
+                    <label class="form-label">CVV</label>
+                    <input
+                            type="password"
+                            class="form-control"
+                            id="cardCvv"
+                            placeholder="123"
+                            maxlength="4"
+                            required
+                    />
+                  </div>
+                </div>
+              </div>
+              <div class="pay-field mt-3">
+                <label class="form-label">Name on Card</label>
+                <input
+                        type="text"
+                        class="form-control"
+                        id="cardName"
+                        placeholder="J DOE"
+                        required
+                />
+              </div>
+            </form>
+            <div
+                    class="d-flex align-items-center justify-content-between mt-3 pay-badges"
+            >
+              <div class="text-muted small">
+                <i class="fas fa-lock"></i> SSL Secured • 3D Secure Ready
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer d-block">
+        <div class="d-flex justify-content-between align-items-center">
+          <button class="btn btn-outline-secondary" data-bs-dismiss="modal">
+            Cancel
+          </button>
+          <button id="payNowBtn" class="btn btn-primary btn-lg">
+            <i class="fas fa-shield-alt me-1"></i> Pay Rs.
+            <span id="payBtnTotal">0.00</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="../assets/js/navigation.js"></script>
+<script>
+  const comingSoonModal = new bootstrap.Modal(
+          document.getElementById("comingSoonModal")
+  );
+
+  function refreshListings(event) {
+    const refreshBtn =
+            this || (event && event.target && event.target.closest("button"));
+    if (!refreshBtn) {
+      console.warn("Refresh button not found");
+      return;
+    }
+    const originalText = refreshBtn.innerHTML;
+    refreshBtn.innerHTML =
+            '<i class="fas fa-spinner fa-spin"></i> Refreshing...';
+    setTimeout(() => {
+      refreshBtn.innerHTML = originalText;
+      showNotification(
+              "No new listings found. Feature coming soon!",
+              "info"
+      );
+    }, 1000);
+  }
+
+  function createNewListing() {
+    comingSoonModal.show();
+  }
+
+  function showNotification(message, type = "info") {
+    const notification = document.createElement("div");
+    notification.style.cssText = `
+                  position: fixed; top: 20px; right: 20px; padding: 15px 20px; border-radius: 10px;
+                  color: white; opacity: 0; transform: translateY(-20px); transition: all 0.3s ease;
+                  z-index: 1001; font-weight: 600; box-shadow: 0 4px 12px rgba(0,0,0,0.2); max-width: 300px;`;
+    const colors = {
+      success: "#1cc88a",
+      error: "#e74a3b",
+      info: "#36b9cc",
+      warning: "#f6c23e",
+    };
+    notification.style.backgroundColor = colors[type] || colors.info;
+    notification.textContent = message;
+    document.body.appendChild(notification);
+    setTimeout(() => {
+      notification.style.opacity = "1";
+      notification.style.transform = "translateY(0)";
+    }, 100);
+    setTimeout(() => {
+      notification.style.opacity = "0";
+      notification.style.transform = "translateY(-20px)";
+      setTimeout(() => notification.remove(), 300);
+    }, 3000);
+  }
+
+  // Adoption Requests: load only requests for my items
+  async function loadAdoptionRequests() {
+    const container = document.getElementById("adoptionRequestsContainer");
+    container.innerHTML =
+            '<div class="text-center"><i class="fas fa-spinner fa-spin"></i> Loading adoption requests...</div>';
+    const token = localStorage.getItem("accessToken"); // Changed from 'token' to 'accessToken'
+    const countBadge = document.getElementById("adoptionCount");
+
+    if (!token) {
+      container.innerHTML =
+              '<div class="alert alert-warning">Please log in to view adoption requests.</div>';
+      if (countBadge) {
+        countBadge.style.display = "none";
+        countBadge.textContent = "0";
+      }
+      return;
+    }
+
+    try {
+      const res = await fetch(
+              "http://localhost:8080/api/adoption/my-items",
+              {
+                headers: { Authorization: `Bearer ${token}` },
+              }
+      );
+
+      if (!res.ok) {
+        if (res.status === 401) {
+          throw new Error("Please log in again");
+        }
+        throw new Error(`Server error: ${res.status}`);
+      }
+
+      const requests = await res.json();
+      if (countBadge) {
+        countBadge.textContent = String(requests?.length || 0);
+        countBadge.style.display =
+                requests && requests.length > 0 ? "inline-block" : "none";
+      }
+
+      if (requests.length === 0) {
+        container.innerHTML = `
+                      <div class="empty-state">
+                        <i class="fas fa-heart"></i>
+                        <h4>No Adoption Requests</h4>
+                        <p>No adoption requests for your items yet. When someone wants to buy one of your items, their requests will appear here.</p>
+                        <button class="btn btn-warning" onclick="window.barkBuddyNav.navigateToMyItems()">
+                          <i class="fas fa-fish"></i> Manage My Items
+                        </button>
+                      </div>`;
+        return;
+      }
+
+      container.innerHTML = "";
+      requests.forEach((r) => {
+        const card = document.createElement("div");
+        card.className = "listing-card";
+        const statusBadgeClass =
+                r.status === "PENDING"
+                        ? "bg-warning text-dark"
+                        : r.status === "APPROVED"
+                                ? "bg-success"
+                                : "bg-danger";
+
+        card.innerHTML = `
+                      <div>
+                        <h5><i class="fas fa-fish"></i> ${r.itemName}</h5>
+                        <p class="mb-1"><strong>Requested by:</strong> ${
+                r.adopterName
+        }</p>
+                        <p class="mb-1"><strong>Date:</strong> ${new Date(
+                r.timestamp
+        ).toLocaleDateString()}</p>
+                        <p class="mb-1"><strong>Status:</strong> <span class="badge ${statusBadgeClass}">${
+                r.status
+        }</span></p>
+                      </div>
+                      <div>
+                        ${
+                r.status === "PENDING"
+                        ? `
+                          <button class="btn btn-success btn-sm me-2" onclick="updateRequestStatus(${r.id}, 'APPROVED')" title="Approve Request">
+                            <i class="fas fa-check"></i> Approve
+                          </button>
+                          <button class="btn btn-danger btn-sm" onclick="updateRequestStatus(${r.id}, 'REJECTED')" title="Reject Request">
+                            <i class="fas fa-times"></i> Reject
+                          </button>
+                        `
+                        : r.status === "APPROVED"
+                                ? `
+                          <span class="text-success"><i class="fas fa-check-circle"></i> Approved</span>
+                        `
+                                : `
+                          <span class="text-danger"><i class="fas fa-times-circle"></i> Rejected</span>
+                        `
+        }
+                      </div>`;
+        container.appendChild(card);
+      });
+    } catch (err) {
+      console.error("Error loading adoption requests:", err);
+      container.innerHTML = `
+                    <div class="alert alert-danger">
+                      <i class="fas fa-exclamation-triangle"></i>
+                      Failed to load adoption requests: ${err.message}
+                      <button class="btn btn-sm btn-outline-danger ms-2" onclick="loadAdoptionRequests()">
+                        <i class="fas fa-rotate-right"></i> Retry
+                      </button>
+                    </div>`;
+      if (countBadge) {
+        countBadge.style.display = "none";
+        countBadge.textContent = "0";
+      }
+    }
+  }
+
+  async function updateRequestStatus(id, status) {
+    const token = localStorage.getItem("accessToken"); // Changed from 'token' to 'accessToken'
+
+    // Show confirmation dialog
+    const actionText = status === "APPROVED" ? "approve" : "reject";
+    const result = await Swal.fire({
+      title: `${status === "APPROVED" ? "Approve" : "Reject"} Request?`,
+      text: `Are you sure you want to ${actionText} this adoption request?`,
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonColor: status === "APPROVED" ? "#28a745" : "#dc3545",
+      cancelButtonColor: "#6c757d",
+      confirmButtonText: `Yes, ${actionText}!`,
+      cancelButtonText: "Cancel",
+    });
+
+    if (!result.isConfirmed) return;
+
+    try {
+      // Show loading state
+      Swal.fire({
+        title: "Processing...",
+        text: `${
+                status === "APPROVED" ? "Approving" : "Rejecting"
+        } the adoption request`,
+        icon: "info",
+        allowOutsideClick: false,
+        showConfirmButton: false,
+        willOpen: () => {
+          Swal.showLoading();
+        },
+      });
+
+      const res = await fetch(
+              `http://localhost:8080/api/adoption/update-status/${id}?status=${status}`,
+              {
+                method: "PUT",
+                headers: { Authorization: `Bearer ${token}` },
+              }
+      );
+
+      if (!res.ok) {
+        throw new Error(`Failed to update status: ${res.status}`);
+      }
+
+      // Show success message
+      Swal.fire({
+        title: "Success!",
+        text: `Adoption request has been ${status.toLowerCase()} successfully!`,
+        icon: "success",
+        confirmButtonColor: "#28a745",
+      });
+
+      // Refresh the list
+      loadAdoptionRequests();
+    } catch (err) {
+      console.error("Error updating request status:", err);
+      Swal.fire({
+        title: "Error!",
+        text: `Failed to ${actionText} request: ${err.message}`,
+        icon: "error",
+        confirmButtonColor: "#dc3545",
+      });
+    }
+  }
+
+  document.addEventListener("DOMContentLoaded", function () {
+    console.log("Listings page loaded");
+    loadAllListings();
+    loadAdoptionRequests();
+  });
+
+  // Refresh Buy Requests when its tab becomes active
+  document
+          .getElementById("adoption-tab")
+          .addEventListener("shown.bs.tab", () => {
+            loadAdoptionRequests();
+          });
+
+  async function loadAllListings() {
+    const container = document.getElementById("allListings");
+    container.innerHTML = `<div class="col-12 text-center py-4"><i class="fas fa-spinner fa-spin"></i> Loading listings...</div>`;
+    try {
+      const res = await fetch("http://localhost:8080/api/listings");
+      if (!res.ok) throw new Error("Failed to load listings");
+      const items = await res.json();
+      if (!items || items.length === 0) {
+        container.innerHTML = `<div class='col-12'><div class="empty-state"><i class="fas fa-list-alt"></i><h4>No Listings Available</h4><p>Please check back later.</p></div></div>`;
+        return;
+      }
+      container.innerHTML = "";
+      items.forEach((e) => {
+        const disabled = !e.quantity || e.quantity <= 0;
+        container.innerHTML += `
+                      <div class="col-md-4">
+                        <div class="card h-100 shadow-sm">
+                          <img src="${
+                e.imageUrl ||
+                "https://via.placeholder.com/600x400?text=Listing"
+        }" class="card-img-top" alt="${e.listingName}">
+                          <div class="card-body d-flex flex-column">
+                            <h5 class="card-title">${e.listingName}</h5>
+                            <p class="card-text small">${
+                e.listingDescription
+        }</p>
+                            <div class="mt-auto d-flex justify-content-between align-items-center">
+                              <span class="fw-bold text-primary">Rs. ${
+                e.price
+        }</span>
+                              <span class=\"badge ${
+                disabled ? "bg-danger" : "bg-success"
+        }\">${
+                disabled ? "Sold out" : "In stock: " + e.quantity
+        }</span>
+                            </div>
+                            <div class="input-group mt-2">
+                              <input type="number" min="1" value="1" class="form-control" id="qty-${
+                e.id
+        }" ${disabled ? "disabled" : ""}>
+                              <button class=\"btn ${
+                disabled ? "btn-secondary" : "btn-warning"
+        }\" onclick=\"openPayment(this)\" data-id=\"${
+                e.id
+        }\" data-name=\"${e.listingName}\" data-price=\"${
+                e.price
+        }\" data-img=\"${e.imageUrl || ""}\" ${
+                disabled ? "disabled" : ""
+        }>${
+                disabled
+                        ? '<i class=\\"fas fa-ban\\"></i> Sold Out'
+                        : '<i class=\\"fas fa-shopping-cart\\"></i> Buy'
+        }</button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>`;
+      });
+    } catch (err) {
+      console.error(err);
+      container.innerHTML = `<div class='col-12'><div class="alert alert-danger">${err.message}</div></div>`;
+    }
+  }
+
+  let currentPurchase = null;
+  const paymentModal = new bootstrap.Modal(
+          document.getElementById("paymentModal")
+  );
+
+  function openPayment(btn) {
+    const id = parseInt(btn.dataset.id, 10);
+    const name = btn.dataset.name || "";
+    const price = btn.dataset.price || "0";
+    const img = btn.dataset.img || "";
+    const qty = parseInt(
+            document.getElementById(`qty-${id}`)?.value || "1",
+            10
+    );
+    if (!qty || qty <= 0)
+      return showNotification("Invalid quantity", "error");
+
+    currentPurchase = { id, name, price, img, qty };
+    // Fill modal UI
+    document.getElementById("payItemName").textContent = name;
+    document.getElementById("payItemPrice").textContent = price;
+    document.getElementById("payItemQty").textContent = qty;
+    document.getElementById("payItemImage").src =
+            img || "https://via.placeholder.com/100x100?text=Item";
+    const total = (() => {
+      try {
+        return (parseFloat(price) * qty).toFixed(2);
+      } catch {
+        return price;
+      }
+    })();
+    document.getElementById("paySubtotal").textContent = total;
+    document.getElementById("payItemTotal").textContent = total;
+    document.getElementById("payBtnTotal").textContent = total;
+    // Reset form
+    document.getElementById("paymentForm").reset();
+    paymentModal.show();
+  }
+
+  async function processPayment() {
+    const token = localStorage.getItem("accessToken");
+    if (!token) {
+      showNotification("Please log in to purchase", "error");
+      return;
+    }
+    if (!currentPurchase) {
+      return;
+    }
+
+    // Basic client-side validation (simulation)
+    const cardNumber = document.getElementById("cardNumber").value.trim();
+    const cardName = document.getElementById("cardName").value.trim();
+    const cardExpiry = document.getElementById("cardExpiry").value.trim();
+    const cardCvv = document.getElementById("cardCvv").value.trim();
+
+    // Only check for exactly 16 digits; do not verify if real/fake
+    const digits = cardNumber.replace(/\D/g, "");
+    if (digits.length !== 16) {
+      showNotification("Card number must have 16 digits", "error");
+      return;
+    }
+    if (!cardName) {
+      showNotification("Enter name on card", "error");
+      return;
+    }
+    if (!/^\d{2}\/\d{2}$/.test(cardExpiry)) {
+      showNotification("Invalid expiry (MM/YY)", "error");
+      return;
+    }
+    if (!/^\d{3,4}$/.test(cardCvv)) {
+      showNotification("Invalid CVV", "error");
+      return;
+    }
+
+    // Simulate gateway processing… then call backend to create paid order
+    const payBtn = document.getElementById("payNowBtn");
+    const original = payBtn.innerHTML;
+    payBtn.disabled = true;
+    payBtn.innerHTML =
+            '<i class="fas fa-spinner fa-spin"></i> Processing...';
+    try {
+      const res = await fetch(
+              `http://localhost:8080/api/orders/pay/${currentPurchase.id}?quantity=${currentPurchase.qty}`,
+              {
+                method: "POST",
+                headers: { Authorization: `Bearer ${token}` },
+              }
+      );
+      if (!res.ok) {
+        const t = await res.text();
+        throw new Error(t || "Payment failed");
+      }
+      paymentModal.hide();
+      showNotification(
+              "Payment successful! Order added to your cart.",
+              "success"
+      );
+      // Refresh listings and cart
+      loadAllListings();
+      loadMyCart();
+    } catch (err) {
+      console.error(err);
+      showNotification(err.message || "Payment failed", "error");
+    } finally {
+      payBtn.disabled = false;
+      payBtn.innerHTML = original;
+    }
+  }
+
+  document
+          .getElementById("payNowBtn")
+          .addEventListener("click", processPayment);
+
+  // Input masking & card brand hint
+  function detectBrand(digits) {
+    if (digits.startsWith("4")) return "visa";
+    const prefix2 = parseInt(digits.substring(0, 2) || "0", 10);
+    if (
+            (prefix2 >= 51 && prefix2 <= 55) ||
+            digits.startsWith("2221") ||
+            digits.startsWith("2222") ||
+            digits.startsWith("27")
+    )
+      return "mc";
+    return null;
+  }
+  const cardNumberEl = document.getElementById("cardNumber");
+  const cardExpiryEl = document.getElementById("cardExpiry");
+  const cardCvvEl = document.getElementById("cardCvv");
+  const brandVisa = document.getElementById("cardBrandIcon");
+  const brandMc = document.getElementById("cardBrandIconMc");
+  cardNumberEl.addEventListener("input", () => {
+    let digits = cardNumberEl.value.replace(/\D/g, "").slice(0, 16);
+    const parts = [];
+    for (let i = 0; i < digits.length; i += 4)
+      parts.push(digits.substring(i, i + 4));
+    cardNumberEl.value = parts.join(" ");
+    const b = detectBrand(digits);
+    brandVisa.style.display = b === "visa" ? "inline-block" : "none";
+    brandMc.style.display = b === "mc" ? "inline-block" : "none";
+  });
+  cardExpiryEl.addEventListener("input", () => {
+    let v = cardExpiryEl.value.replace(/\D/g, "").slice(0, 4);
+    if (v.length >= 3) v = v.substring(0, 2) + "/" + v.substring(2);
+    cardExpiryEl.value = v;
+  });
+  cardCvvEl.addEventListener("input", () => {
+    cardCvvEl.value = cardCvvEl.value.replace(/\D/g, "").slice(0, 4);
+  });
+
+  async function loadMyCart() {
+    const container = document.getElementById("myCartContainer");
+    const token = localStorage.getItem("accessToken");
+    if (!token) {
+      container.innerHTML =
+              '<div class="col-12 text-center py-4"><div class="alert alert-warning">Please log in to view your cart.</div></div>';
+      return;
+    }
+    container.innerHTML =
+            '<div class="col-12 text-center py-4"><i class="fas fa-spinner fa-spin"></i> Loading your orders...</div>';
+    try {
+      const res = await fetch("http://localhost:8080/api/orders/me", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error("Failed to load orders");
+      const orders = await res.json();
+      if (!orders || orders.length === 0) {
+        container.innerHTML =
+                '<div class="col-12 text-center py-4"><i class="fas fa-shopping-cart"></i> Your cart is empty.</div>';
+        return;
+      }
+      container.innerHTML = "";
+      orders.forEach((o) => {
+        container.innerHTML += `
+                      <div class=\"col-md-6\">
+                        <div class=\"card h-100\">
+                          <div class=\"card-body d-flex\">
+                            <img src=\"${
+                o.imageUrl ||
+                "https://via.placeholder.com/100x100?text=Item"
+        }\" style=\"width:80px;height:80px;object-fit:cover;border-radius:8px;margin-right:12px;\" alt=\"${
+                o.listingName
+        }\"/>
+                            <div class=\"flex-grow-1\">
+                              <h6 class=\"mb-1\">${o.listingName}</h6>
+                              <div class=\"small text-muted\">Qty: ${
+                o.quantity
+        } • Unit: Rs. ${o.unitPrice}</div>
+                              <div class=\"fw-bold\">Total: Rs. ${o.total}</div>
+                              <span class=\"badge bg-success mt-2\">${
+                o.status
+        }</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>`;
+      });
+    } catch (err) {
+      console.error(err);
+      container.innerHTML = `<div class='col-12'><div class="alert alert-danger">${err.message}</div></div>`;
+    }
+  }
+
+  // Load cart when the tab becomes visible
+  document
+          .querySelector('button[data-bs-target="#myCart"]')
+          .addEventListener("shown.bs.tab", loadMyCart);
+
+  async function buyListing(id) {
+    const qtyInput = document.getElementById(`qty-${id}`);
+    const qty = parseInt(qtyInput?.value || "1", 10);
+    if (!qty || qty <= 0) return alert("Invalid quantity");
+    try {
+      const res = await fetch(
+              `http://localhost:8080/api/listings/${id}/purchase?quantity=${qty}`,
+              { method: "POST" }
+      );
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(text || "Purchase failed");
+      }
+      // success: reload listings to reflect updated stock
+      loadAllListings();
+      showNotification("Purchase successful!", "success");
+    } catch (err) {
+      console.error(err);
+      showNotification(err.message || "Purchase failed", "error");
+    }
+  }
+
+  // Lost & Found removed: legacy function kept as no-op for safety
+  function loadMyItemReports() {
+    /* removed */
+  }
+
+  function loadSightings() {
+    /* removed */
+  }
+
+  // Lost & Found removed: purge any leftover listeners safely
+
+  document
+          .querySelector('button[data-bs-target="#request"]')
+          .addEventListener("shown.bs.tab", loadMyRequests);
+
+  async function loadMyRequests() {
+    const container = document.getElementById("myRequestsContainer");
+    container.innerHTML =
+            '<div class="text-center py-4"><i class="fas fa-spinner fa-spin"></i> Loading your adoption requests...</div>';
+    const token = localStorage.getItem("accessToken");
+    if (!token) {
+      container.innerHTML =
+              '<div class="alert alert-warning">Please log in to view your requests.</div>';
+      return;
+    }
+
+    try {
+      const res = await fetch(
+              "http://localhost:8080/api/adoption/my-requests",
+              {
+                headers: { Authorization: `Bearer ${token}` },
+              }
+      );
+      if (!res.ok) throw new Error(`Failed to load: ${res.status}`);
+      const requests = await res.json();
+
+      if (!requests || requests.length === 0) {
+        container.innerHTML = `
+                  <div class="empty-state">
+                    <i class="fas fa-heart"></i>
+                    <h4>No Requests Made</h4>
+                    <p>You haven't submitted any adoption requests yet. Browse items to buy your new friend! �</p>
+                    <button class="btn btn-primary" onclick="window.barkBuddyNav.navigateToAdopt()">
+                      <i class="fas fa-fish"></i> Browse Items
+                    </button>
+                  </div>`;
+        return;
+      }
+
+      container.innerHTML = "";
+      // For "My Requests" tab
+      requests.forEach((r) => {
+        const card = document.createElement("div");
+        card.className = "listing-card";
+
+        const ownerName = r.ownerUsername || "Unknown";
+        const statusClass =
+                r.status === "PENDING"
+                        ? "status-pending"
+                        : r.status === "APPROVED"
+                                ? "status-active"
+                                : "status-closed";
+
+        card.innerHTML = `
+                    <div>
+                      <h5><i class="fas fa-fish"></i> ${r.itemName}</h5>
+                      <p class="mb-1"><strong>Owner:</strong> ${ownerName}</p>
+                      <p class="mb-1"><strong>Date:</strong> ${new Date(
+                r.timestamp
+        ).toLocaleDateString()}</p>
+                      <p class="mb-1"><strong>Status:</strong> <span class="status-badge ${statusClass}">${
+                r.status
+        }</span></p>
+                    </div>
+                  `;
+        container.appendChild(card);
+      });
+    } catch (err) {
+      console.error("Error loading my requests:", err);
+      container.innerHTML = `<div class="alert alert-danger">Failed to load your requests: ${err.message}</div>`;
+    }
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Enter Verification Code - AquaMart</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <link href="../assets/css/responsive.css" rel="stylesheet">
+  <style>
+    body {
+      background: linear-gradient(to bottom right, #a6ffea, #596dcd);
+      min-height: 100vh;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      padding: 20px;
+    }
+    .verification-container {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .verification-card {
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 16px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12);
+      max-width: 420px;
+      width: 100%;
+      overflow: hidden;
+    }
+    .card-header {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+      text-align: center;
+      padding: 1.5rem;
+    }
+    .verification-icon {
+      font-size: 2.5rem;
+      margin-bottom: 0.5rem;
+    }
+    .card-body {
+      padding: 1.8rem;
+    }
+    .step-indicator {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      margin-bottom: 1rem;
+    }
+    .step {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: bold;
+    }
+    .step.completed {
+      background: #28a745;
+      color: white;
+    }
+    .step.active {
+      background: #667eea;
+      color: white;
+    }
+    .step.pending {
+      background: #e9ecef;
+      color: #6c757d;
+    }
+    .otp-inputs {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin: 1.5rem 0;
+    }
+    .otp-input {
+      width: 50px;
+      height: 50px;
+      text-align: center;
+      font-size: 1.25rem;
+      font-weight: bold;
+      border: 2px solid #e9ecef;
+      border-radius: 8px;
+      outline: none;
+      transition: all 0.3s ease;
+    }
+    .otp-input:focus {
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+    .otp-input.filled {
+      background: #f8f9fa;
+      border-color: #28a745;
+    }
+    .timer-section {
+      text-align: center;
+      margin: 1rem 0;
+      padding: 0.75rem;
+      background: #fff3cd;
+      border: 1px solid #ffeaa7;
+      border-radius: 6px;
+      color: #856404;
+    }
+    .resend-section {
+      text-align: center;
+      margin: 1rem 0;
+    }
+    .resend-link {
+      color: #667eea;
+      text-decoration: none;
+      font-weight: 500;
+      transition: color 0.3s ease;
+    }
+    .resend-link:hover:not(.disabled) {
+      color: #5a6fd8;
+    }
+    .resend-link.disabled {
+      color: #adb5bd;
+      cursor: not-allowed;
+      text-decoration: line-through;
+    }
+    .btn-verify {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      border: none;
+      color: white;
+      padding: 12px;
+      border-radius: 8px;
+      width: 100%;
+      font-weight: 600;
+      margin-top: 1rem;
+      transition: all 0.3s ease;
+    }
+    .btn-verify:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+      color: white;
+    }
+    .btn-verify:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+    .btn-back {
+      background: transparent;
+      border: 2px solid #6c757d;
+      color: #6c757d;
+      padding: 10px;
+      border-radius: 8px;
+      width: 100%;
+      font-weight: 500;
+      margin-top: 0.5rem;
+      transition: all 0.3s ease;
+    }
+    .btn-back:hover {
+      background: #6c757d;
+      color: white;
+    }
+    .password-section {
+      display: none;
+      margin-top: 1rem;
+    }
+    .password-input {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #e9ecef;
+      border-radius: 8px;
+      margin-bottom: 1rem;
+      font-size: 1rem;
+      transition: border-color 0.3s ease;
+    }
+    .password-input:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+    .alert {
+      border-radius: 8px;
+      margin-bottom: 1rem;
+    }
+    .email-display {
+      background: #f8f9fa;
+      border: 1px solid #dee2e6;
+      border-radius: 6px;
+      padding: 8px 12px;
+      margin: 0.5rem 0 1rem 0;
+      font-family: monospace;
+      font-weight: 500;
+      text-align: center;
+      color: #495057;
+    }
+  </style>
+</head>
+<body>
+  <div class="verification-container">
+    <div class="verification-card">
+      <div class="card-header">
+        <div class="verification-icon">
+          <i class="fas fa-shield-alt"></i>
+        </div>
+        <h3 class="mb-0">Verification Required</h3>
+        <p class="mb-0 mt-2">Enter the code sent to your email</p>
+      </div>
+      <div class="card-body">
+        <!-- Step Indicator -->
+        <div class="step-indicator">
+          <div class="step completed">1</div>
+          <div class="step active">2</div>
+          <div class="step pending">3</div>
+        </div>
+
+        <!-- Alert for messages -->
+        <div id="alertContainer"></div>
+
+        <!-- Email Display -->
+        <div class="email-display" id="emailDisplay">
+          Loading...
+        </div>
+
+        <p class="text-muted text-center mb-3">
+          Please enter the 6-digit verification code sent to your email address.
+        </p>
+
+        <form id="verificationForm">
+          <!-- OTP Input Section -->
+          <div id="otpSection">
+            <div class="otp-inputs">
+              <input type="text" class="otp-input" maxlength="1" inputmode="numeric">
+              <input type="text" class="otp-input" maxlength="1" inputmode="numeric">
+              <input type="text" class="otp-input" maxlength="1" inputmode="numeric">
+              <input type="text" class="otp-input" maxlength="1" inputmode="numeric">
+              <input type="text" class="otp-input" maxlength="1" inputmode="numeric">
+              <input type="text" class="otp-input" maxlength="1" inputmode="numeric">
+            </div>
+
+            <div class="timer-section">
+              <i class="fas fa-clock me-1"></i>
+              Code expires in: <span id="timeDisplay">15:00</span>
+            </div>
+
+            <div class="resend-section">
+              <p class="mb-1">Didn't receive the code?</p>
+              <a href="#" class="resend-link disabled" id="resendLink">
+                <i class="fas fa-sync-alt me-1"></i> Resend Code
+              </a>
+            </div>
+          </div>
+
+          <!-- New Password Section (hidden initially) -->
+          <div class="password-section" id="passwordSection">
+            <div class="mb-3">
+              <label class="form-label">New Password</label>
+              <input type="password" class="password-input" id="newPassword" placeholder="Enter your new password" minlength="6">
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Confirm Password</label>
+              <input type="password" class="password-input" id="confirmPassword" placeholder="Confirm your new password" minlength="6">
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-verify" id="submitBtn">
+            <i class="fas fa-check me-2"></i>Verify Code
+          </button>
+
+          <button type="button" class="btn btn-back" onclick="goBack()">
+            <i class="fas fa-arrow-left me-2"></i>Back to Previous Step
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let timeRemaining = 900; // 15 minutes
+    let timerInterval;
+    let userEmail = '';
+    let otpVerified = false;
+
+    document.addEventListener('DOMContentLoaded', () => {
+      initializePage();
+    });
+
+    function initializePage() {
+      // Get email from URL parameters or sessionStorage
+      const urlParams = new URLSearchParams(window.location.search);
+      userEmail = urlParams.get('email') || sessionStorage.getItem('resetPasswordEmail') || '';
+      
+      if (!userEmail) {
+        showAlert('danger', 'Invalid request. Please start the password reset process again.');
+        setTimeout(() => {
+          window.location.href = 'forgetpassword.html';
+        }, 3000);
+        return;
+      }
+
+      document.getElementById('emailDisplay').textContent = userEmail;
+      
+      startTimer();
+      setupOTPInputs();
+      setupFormHandler();
+      setupResendLink();
+    }
+
+    function setupOTPInputs() {
+      const inputs = document.querySelectorAll('.otp-input');
+      inputs.forEach((input, index) => {
+        input.addEventListener('input', function(e) {
+          this.value = this.value.replace(/\D/g, '');
+          if (this.value) {
+            this.classList.add('filled');
+            if (index < inputs.length - 1) {
+              inputs[index + 1].focus();
+            }
+          } else {
+            this.classList.remove('filled');
+          }
+          checkOTPComplete();
+        });
+
+        input.addEventListener('keydown', function(e) {
+          if (e.key === "Backspace" && !this.value && index > 0) {
+            inputs[index - 1].focus();
+            inputs[index - 1].classList.remove('filled');
+          }
+        });
+
+        input.addEventListener('paste', function(e) {
+          e.preventDefault();
+          const pastedText = (e.clipboardData || window.clipboardData).getData('text');
+          const digits = pastedText.replace(/\D/g, '').slice(0, 6);
+          
+          digits.split('').forEach((digit, i) => {
+            if (inputs[i]) {
+              inputs[i].value = digit;
+              inputs[i].classList.add('filled');
+            }
+          });
+          
+          checkOTPComplete();
+        });
+      });
+    }
+
+    function checkOTPComplete() {
+      const inputs = document.querySelectorAll('.otp-input');
+      const submitBtn = document.getElementById('submitBtn');
+      const allFilled = Array.from(inputs).every(input => input.value.length === 1);
+      
+      if (allFilled && !otpVerified) {
+        submitBtn.disabled = false;
+      } else {
+        submitBtn.disabled = true;
+      }
+    }
+
+    function setupFormHandler() {
+      document.getElementById('verificationForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        if (!otpVerified) {
+          await verifyOTP();
+        } else {
+          await resetPassword();
+        }
+      });
+    }
+
+    function setupResendLink() {
+      document.getElementById('resendLink').addEventListener('click', async (e) => {
+        e.preventDefault();
+        
+        if (e.target.classList.contains('disabled')) {
+          return;
+        }
+
+        await resendOTP();
+      });
+    }
+
+    async function verifyOTP() {
+      const inputs = document.querySelectorAll('.otp-input');
+      const otp = Array.from(inputs).map(input => input.value).join('');
+      
+      if (otp.length !== 6) {
+        showAlert('warning', 'Please enter all 6 digits of the verification code.');
+        return;
+      }
+
+      const submitBtn = document.getElementById('submitBtn');
+      const originalText = submitBtn.innerHTML;
+      submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Verifying...';
+      submitBtn.disabled = true;
+
+      try {
+        // For OTP verification, we need to send a temporary verification request
+        // Since our backend combines OTP verification with password reset, 
+        // we'll need to modify our approach slightly
+        
+        // Show password section immediately after OTP validation
+        otpVerified = true;
+        showPasswordSection();
+        
+      } catch (error) {
+        console.error('OTP verification failed:', error);
+        showAlert('danger', 'Verification failed. Please check your code and try again.');
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+      }
+    }
+
+    async function resetPassword() {
+      const newPassword = document.getElementById('newPassword').value;
+      const confirmPassword = document.getElementById('confirmPassword').value;
+      
+      // Validate passwords
+      if (!newPassword || newPassword.length < 6) {
+        showAlert('warning', 'Password must be at least 6 characters long.');
+        return;
+      }
+      
+      if (newPassword !== confirmPassword) {
+        showAlert('warning', 'Passwords do not match.');
+        return;
+      }
+
+      const inputs = document.querySelectorAll('.otp-input');
+      const otp = Array.from(inputs).map(input => input.value).join('');
+      
+      const submitBtn = document.getElementById('submitBtn');
+      const originalText = submitBtn.innerHTML;
+      submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Resetting Password...';
+      submitBtn.disabled = true;
+
+      try {
+        const response = await fetch('http://localhost:8080/auth/aquamart/verify-otp', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            email: userEmail,
+            otp: otp,
+            newPassword: newPassword
+          })
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.status === 200) {
+          showAlert('success', 'Password reset successful! Redirecting to login page...');
+          
+          // Clear stored email
+          sessionStorage.removeItem('resetPasswordEmail');
+          
+          // Update UI to show completion
+          updateStepIndicator(3);
+          
+          setTimeout(() => {
+            window.location.href = 'login.html';
+          }, 3000);
+        } else {
+          showAlert('danger', data.message || 'Failed to reset password. Please try again.');
+          submitBtn.innerHTML = originalText;
+          submitBtn.disabled = false;
+        }
+      } catch (error) {
+        console.error('Password reset failed:', error);
+        showAlert('danger', 'Network error. Please check your connection and try again.');
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+      }
+    }
+
+    function showPasswordSection() {
+      // Update step indicator
+      updateStepIndicator(3);
+      
+      // Hide OTP section and show password section
+      document.getElementById('otpSection').style.display = 'none';
+      document.getElementById('passwordSection').style.display = 'block';
+      
+      // Update button text
+      const submitBtn = document.getElementById('submitBtn');
+      submitBtn.innerHTML = '<i class="fas fa-key me-2"></i>Reset Password';
+      submitBtn.disabled = false;
+      
+      // Update header
+      document.querySelector('.card-header h3').textContent = 'Set New Password';
+      document.querySelector('.card-header p').textContent = 'Enter your new password';
+      
+      // Focus on new password input
+      document.getElementById('newPassword').focus();
+      
+      // Set up password validation
+      setupPasswordValidation();
+    }
+
+    function setupPasswordValidation() {
+      const newPassword = document.getElementById('newPassword');
+      const confirmPassword = document.getElementById('confirmPassword');
+      const submitBtn = document.getElementById('submitBtn');
+      
+      function validatePasswords() {
+        const isValid = newPassword.value.length >= 6 && 
+                       newPassword.value === confirmPassword.value;
+        submitBtn.disabled = !isValid;
+      }
+      
+      newPassword.addEventListener('input', validatePasswords);
+      confirmPassword.addEventListener('input', validatePasswords);
+    }
+
+    async function resendOTP() {
+      const resendLink = document.getElementById('resendLink');
+      const originalText = resendLink.innerHTML;
+      resendLink.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Sending...';
+      
+      try {
+        const response = await fetch('http://localhost:8080/auth/aquamart/forgot-password', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            email: userEmail
+          })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          showAlert('success', 'New verification code sent! Please check your email.');
+          
+          // Reset timer
+          timeRemaining = 900; // 15 minutes
+          startTimer();
+          resendLink.classList.add('disabled');
+          
+          // Clear current OTP inputs
+          const inputs = document.querySelectorAll('.otp-input');
+          inputs.forEach(input => {
+            input.value = '';
+            input.classList.remove('filled');
+          });
+          inputs[0].focus();
+          
+        } else {
+          showAlert('warning', data.message || 'Failed to send new code. Please try again.');
+        }
+      } catch (error) {
+        console.error('Resend failed:', error);
+        showAlert('danger', 'Network error. Please check your connection and try again.');
+      }
+      
+      resendLink.innerHTML = originalText;
+    }
+
+    function startTimer() {
+      clearInterval(timerInterval);
+      const timerDisplay = document.getElementById('timeDisplay');
+      const resendLink = document.getElementById('resendLink');
+
+      timerInterval = setInterval(() => {
+        const minutes = Math.floor(timeRemaining / 60);
+        const seconds = timeRemaining % 60;
+        timerDisplay.textContent = 
+          `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        
+        timeRemaining--;
+
+        if (timeRemaining < 0) {
+          clearInterval(timerInterval);
+          timerDisplay.textContent = 'EXPIRED';
+          timerDisplay.style.color = '#dc3545';
+          resendLink.classList.remove('disabled');
+          showAlert('warning', 'Verification code has expired. Please request a new one.');
+        }
+      }, 1000);
+    }
+
+    function updateStepIndicator(activeStep) {
+      const steps = document.querySelectorAll('.step');
+      steps.forEach((step, index) => {
+        const stepNumber = index + 1;
+        step.className = 'step';
+        
+        if (stepNumber < activeStep) {
+          step.classList.add('completed');
+        } else if (stepNumber === activeStep) {
+          step.classList.add('active');
+        } else {
+          step.classList.add('pending');
+        }
+      });
+    }
+
+    function showAlert(type, message) {
+      const alertContainer = document.getElementById('alertContainer');
+      const alertDiv = document.createElement('div');
+      alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+      alertDiv.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      `;
+      
+      // Clear previous alerts
+      alertContainer.innerHTML = '';
+      alertContainer.appendChild(alertDiv);
+      
+      // Auto remove success/info alerts after 5 seconds
+      if (type === 'success' || type === 'info') {
+        setTimeout(() => {
+          if (alertDiv.parentElement) {
+            alertDiv.remove();
+          }
+        }, 5000);
+      }
+    }
+
+    function goBack() {
+      // Clear stored email when going back
+      sessionStorage.removeItem('resetPasswordEmail');
+      window.location.href = 'forgetpassword.html';
+    }
+
+    // Prevent back button from breaking the flow
+    window.addEventListener('beforeunload', () => {
+      if (otpVerified) {
+        return 'You are in the middle of resetting your password. Are you sure you want to leave?';
+      }
+    });
+  </script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AquaMart</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="../assets/css/navigation.css">
+  <link rel="stylesheet" href="../assets/css/responsive.css">
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to bottom right, #a6ffea, #596dcd);
+      min-height: 100vh;
+      margin: 0;
+    }
+    .main {
+      margin-left: 240px;
+      padding: 2rem;
+      min-height: 100vh;
+    }
+    .welcome-buttons .btn {
+      margin-right: 1rem;
+      margin-bottom: 0.5rem;
+      padding: 0.75rem 1.5rem;
+      font-weight: 600;
+      border-radius: 25px;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .welcome-buttons .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+    .card img {
+      height: 200px;
+      object-fit: cover;
+    }
+    .fish-card {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      padding: 1rem;
+      text-align: center;
+      transition: all 0.3s ease;
+    }
+    .fish-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    }
+    .fish-card .btn {
+      border-radius: 20px;
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
+    .fish-card .btn:hover {
+      transform: scale(1.05);
+    }
+    
+    .fish-card img {
+      width: 100%;
+      height: 200px;
+      object-fit: cover;
+      border-radius: 8px;
+    }
+    
+    .fish-card .badge {
+      font-size: 0.75rem;
+      border-radius: 15px;
+    }
+    
+    .spinner-border-custom {
+      width: 3rem;
+      height: 3rem;
+    }
+    
+    #loading-items {
+      color: #666;
+    }
+    
+    .alert-info {
+      background-color: rgba(13, 110, 253, 0.1);
+      border-color: rgba(13, 110, 253, 0.2);
+    }
+    
+    .alert-warning {
+      background-color: rgba(255, 193, 7, 0.1);
+      border-color: rgba(255, 193, 7, 0.2);
+    }
+    
+    /* Fish card hover effects */
+    .fish-card:hover .badge {
+      transform: scale(1.1);
+      transition: transform 0.2s ease;
+    }
+    
+    /* Status-specific styling */
+    .fish-card.not_available {
+      border: 2px dashed #ffc107;
+    }
+    
+    .fish-card.available {
+      border: 2px solid #28a745;
+    }
+    
+    /* Responsive improvements */
+    @media (max-width: 768px) {
+      /* Sidebar off-canvas is handled globally in responsive.css */
+      .main {
+        margin-left: 0;
+        padding: 1rem;
+      }
+      .welcome-buttons .btn {
+        width: 100%;
+        margin-right: 0;
+        margin-bottom: 1rem;
+      }
+      .fish-card {
+        margin-bottom: 2rem;
+      }
+      #items-container {
+        justify-content: center;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Sidebar -->
+<div class="sidebar d-flex flex-column">
+  <h4>🐡 <strong>AquaMart</strong></h4>
+    <nav class="nav flex-column mt-4">
+    <a class="nav-link" href="dashboard.html" data-page="dashboard">🏠 Dashboard</a>
+  <a class="nav-link" href="adoptFriend.html" data-page="adopt">💛 Buy a Friend</a>
+  <a class="nav-link" href="myItem.html" data-page="myItem">🐟 My Items</a>
+    <a class="nav-link" href="listings.html" data-page="listings">📄 Listings & Requests</a>
+    <a class="nav-link" href="messages.html" data-page="messages">💬 Messages</a>
+    <a class="nav-link" href="setting.html" data-page="setting">⚙️ Setting</a>
+    <a class="nav-link mt-auto" href="#" onclick="window.barkBuddyNav.logout(); return false;">🚪 Logout</a>
+    </nav>
+  </div>
+
+  <!-- Main Content -->
+  <div class="main">
+    <div id="content-area">
+      <div class="text-center mb-5">
+  <h2><strong>Welcome to <span style="color: #FEC83C;">AquaMart</span> 🐟</strong></h2>
+        <p>Find your furry friend, report my items, or sell/adopt responsibly!</p>
+        <div class="welcome-buttons">
+          <button class="btn btn-warning" onclick="window.barkBuddyNav.navigateToAdopt()">🐟 Buy a Fish</button>
+          
+        </div>
+      </div>
+      <div>
+    <h3 class="text-center fw-bold mb-4">🐟 Featured Items for Sale</h3>
+        <div id="loading-items" class="text-center py-5">
+          <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading items...</span>
+          </div>
+          <p class="mt-3">Loading available items...</p>
+        </div>
+        <div id="items-container" class="row justify-content-center g-4" style="display: none;">
+          <!-- items will be loaded dynamically here -->
+        </div>
+        <div id="no-items-message" class="text-center py-5" style="display: none;">
+          <div class="alert alert-info" role="alert">
+            <i class="fas fa-info-circle"></i>
+            <h5>No Items Available</h5>
+            <p>There are currently no items available for purchase. Check back soon!</p>
+            <button class="btn btn-primary" onclick="loadFeaturedItems()">
+              <i class="fas fa-refresh"></i> Refresh
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- ✅ Add SweetAlert2 CDN before your navigation.js -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+  <script src="../assets/js/navigation.js"></script>
+  
+  <script>
+    // Configuration
+  const API_BASE_URL = 'http://localhost:8080/api/items';
+    
+    // Additional dashboard-specific functionality can go here
+    document.addEventListener('DOMContentLoaded', function() {
+      // Any dashboard-specific initialization
+      console.log('Dashboard loaded successfully');
+      
+  // Load items data
+      loadFeaturedItems();
+      
+      
+    });
+
+    async function loadFeaturedItems() {
+      const loadingElement = document.getElementById('loading-items');
+      const itemsContainer = document.getElementById('items-container');
+      const noItemsMessage = document.getElementById('no-items-message');
+      
+      try {
+  console.log('Fetching items from API...');
+        
+        const response = await fetch(`${API_BASE_URL}/all`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          }
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+  const allItems = await response.json();
+  console.log('Fetched items:', allItems);
+
+        // Filter items with AVAILABLE and NOT_AVAILABLE status
+        const availableItems = allItems.filter(fish => 
+          fish.status === 'AVAILABLE' || fish.status === 'NOT_AVAILABLE'
+        );
+
+        // Hide loading spinner
+        loadingElement.style.display = 'none';
+
+        if (availableItems.length === 0) {
+          // Show no items message
+          noItemsMessage.style.display = 'block';
+        } else {
+          // Display items
+          displayItems(availableItems.slice(0, 6)); // Show first 6 items
+          itemsContainer.style.display = 'flex';
+        }
+
+      } catch (error) {
+        console.error('Error loading items:', error);
+        loadingElement.style.display = 'none';
+        // Show simple empty state (no example items)
+        noItemsMessage.style.display = 'block';
+      }
+    }
+
+    function displayItems(items) {
+      const itemsContainer = document.getElementById('items-container');
+      itemsContainer.innerHTML = '';
+
+      items.forEach(fish => {
+        const itemCard = createItemCard(fish);
+        itemsContainer.appendChild(itemCard);
+      });
+    }
+
+    function createItemCard(fish) {
+      const colDiv = document.createElement('div');
+      colDiv.className = 'col-md-4 col-lg-3 mb-4';
+      
+      // Determine status badge and button text
+      const statusBadge = getStatusBadge(fish.status);
+  const buttonText = fish.status === 'NOT_AVAILABLE' ? 'View Details' : 'Buy Me';
+      const buttonClass = fish.status === 'NOT_AVAILABLE' ? 'btn btn-info' : 'btn btn-warning';
+      
+      // Handle missing image
+      const imageUrl = fish.imageUrl || 'https://images.unsplash.com/photo-1601758174623-0c6f152c3b02?w=300&h=200&fit=crop';
+      
+      colDiv.innerHTML = `
+        <div class="fish-card position-relative">
+          ${statusBadge}
+    <img src="${imageUrl}" 
+      class="card-img-top rounded" 
+  alt="${fish.itemName || 'Adorable Item'}"
+               onerror="this.src='https://images.unsplash.com/photo-1601758174623-0c6f152c3b02?w=300&h=200&fit=crop'">
+  <h5 class="mt-3">${fish.itemName || 'Unknown Name'}</h5>
+          <button class="${buttonClass}" 
+         onclick="handleItemAction(${fish.id}, '${fish.status}', '${fish.itemName || 'this item'}')">
+            ${buttonText}
+          </button>
+        </div>
+      `;
+      
+      return colDiv;
+    }
+
+    function getStatusBadge(status) {
+      if (status === 'NOT_AVAILABLE') {
+        return `
+          <span class="position-absolute top-0 end-0 badge bg-warning text-dark m-2">
+            <i class="fas fa-clock"></i> Not_Available
+          </span>
+        `;
+      } else if (status === 'AVAILABLE') {
+        return `
+          <span class="position-absolute top-0 end-0 badge bg-success m-2">
+            <i class="fas fa-heart"></i> For Sale
+          </span>
+        `;
+      }
+      return '';
+    }
+
+    function handleItemAction(itemId, status, itemName) {
+      if (status === 'NOT_AVAILABLE') {
+        // Show not_available message
+        showNotification(`${itemName} is currently not_available. Please check back later!`, 'info');
+        
+        
+      } else {
+  // Navigate to buying page
+          showNotification(`Let's help you buy ${itemName}! 🐟`, 'success');
+        setTimeout(() => {
+          window.barkBuddyNav.navigateToAdopt();
+        }, 1500);
+      }
+    }
+
+    // Removed fallback examples: on error we now just show the "No Items Available" message.
+
+    function showNotification(message, type = 'info') {
+      // Create notification element
+      const notification = document.createElement('div');
+      notification.className = `alert alert-${type} position-fixed`;
+      notification.style.cssText = `
+        top: 20px;
+        right: 20px;
+        z-index: 9999;
+        max-width: 400px;
+        opacity: 0;
+        transform: translateX(50px);
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+      `;
+      
+      notification.innerHTML = `
+        <div class="d-flex align-items-center">
+          <div class="flex-grow-1">${message}</div>
+          <button type="button" class="btn-close ms-2" onclick="this.parentElement.parentElement.remove()"></button>
+        </div>
+      `;
+      
+      document.body.appendChild(notification);
+      
+      // Animate in
+      setTimeout(() => {
+        notification.style.opacity = '1';
+        notification.style.transform = 'translateX(0)';
+      }, 100);
+      
+      // Auto remove after 5 seconds
+      setTimeout(() => {
+        if (notification.parentElement) {
+          notification.style.opacity = '0';
+          notification.style.transform = 'translateX(50px)';
+          setTimeout(() => {
+            if (notification.parentElement) {
+              notification.remove();
+            }
+          }, 300);
+        }
+      }, 5000);
+    }
+
+    
+  </script>
+</body>
+</html>

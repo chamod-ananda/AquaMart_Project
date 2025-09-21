@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>AquaMart - Settings</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+<link rel="stylesheet" href="../assets/css/navigation.css"/>
+<link rel="stylesheet" href="../assets/css/responsive.css"/>
+<style>
+  body { font-family: 'Segoe UI', sans-serif; linear-gradient(to bottom right, #a6ffea, #596dcd); margin:0; min-height:100vh;}
+  .main { 
+    margin-left:240px; 
+    display:flex; 
+    justify-content:center; 
+    align-items:center; 
+    min-height:100vh; 
+    padding:2rem;
+  }
+  .settings-card { 
+    background:linear-gradient(to bottom right, #a6ffea, #596dcd);
+    border-radius:12px; 
+    box-shadow:0 2px 8px rgba(0,0,0,0.15); 
+    padding:24px; 
+    max-width:500px; 
+    width:100%;
+  }
+  .settings-card h3 { margin-bottom:1.5rem; text-align:center; }
+  .form-label { font-weight:600; }
+  .btn-save { width:100%; padding:0.75rem; font-weight:600; }
+  .notification {
+    position: fixed;
+    top: 20px; right: 20px;
+    padding: 10px 20px;
+    border-radius: 6px;
+    color: #fff;
+    font-weight: 600;
+    display: none;
+    z-index: 1000;
+  }
+  .notification.show { display: block; }
+  .notification.success { background-color: #28a745; }
+  .notification.error { background-color: #dc3545; }
+
+  #savebtn {
+    background-color: #2C2A7B;
+  }
+</style>
+</head>
+<body>
+
+  <div class="sidebar d-flex flex-column">
+  <h4>� <strong>AquaMart</strong></h4>
+    <nav class="nav flex-column mt-4">
+      <a class="nav-link active" href="adminDashboard.html" data-page="admin">👑 Admin Panel</a>
+      <a class="nav-link" href="adminListing.html" data-page="listings">📄 Listings</a>
+      <a class="nav-link" href="adminPayments.html" data-page="payments">💳 Payments</a>
+      <a class="nav-link" href="adminSetting.html" data-page="setting">⚙️ Setting</a>
+      <a class="nav-link mt-auto" href="#" onclick="window.barkBuddyNav.logout(); return false;">🚪 Logout</a>
+    </nav>
+  </div>
+
+<div class="main">
+  <div class="settings-card">
+    <h3>⚙️ Account Settings</h3>
+    <form id="settingsForm">
+      <div class="mb-3">
+        <label for="username" class="form-label"><i class="fas fa-user me-2"></i>Username</label>
+        <input type="text" class="form-control" id="username" placeholder="Enter your username" required>
+      </div>
+      <div class="mb-3">
+        <label for="email" class="form-label"><i class="fas fa-envelope me-2"></i>Email</label>
+        <input type="email" class="form-control" id="email" placeholder="Enter your email" required>
+      </div>
+      <div class="mb-3">
+        <label for="password" class="form-label"><i class="fas fa-lock me-2"></i>Password</label>
+        <input type="password" class="form-control" id="password" placeholder="Enter new password (leave blank to keep current)">
+      </div>
+      <button type="submit" class="btn btn-primary btn-save" id="savebtn"><i class="fas fa-save me-2"></i>Save Changes</button>
+    </form>
+  </div>
+</div>
+
+<div id="notification" class="notification"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="../assets/js/navigation.js"></script>
+<script>
+const settingsForm = document.getElementById('settingsForm');
+const notification = document.getElementById('notification');
+const token = localStorage.getItem('accessToken');
+
+function showNotification(msg,type='success'){
+  notification.textContent = msg;
+  notification.className='notification show ' + type;
+  setTimeout(()=>{ notification.className='notification'; },3000);
+}
+
+if(!token){
+  alert('Please log in first');
+  window.location.href = 'login.html';
+}
+
+// Load current user data on page load
+async function loadUserSettings(){
+  try{
+    const res = await fetch('http://localhost:8080/api/users/settings', {
+      headers: { 'Authorization':'Bearer '+token }
+    });
+    if(!res.ok) throw new Error('Failed to load user data');
+    const data = await res.json();
+    document.getElementById('username').value = data.username;
+    document.getElementById('email').value = data.email;
+    document.getElementById('password').value = ''; // always empty
+  }catch(err){
+    console.error(err);
+    showNotification('Could not load user data','error');
+  }
+}
+
+loadUserSettings();
+
+settingsForm.addEventListener('submit', async(e)=>{
+  e.preventDefault();
+  const username = document.getElementById('username').value.trim();
+  const email = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value.trim();
+
+  if(!username || !email){
+    return showNotification('Username and email are required','error');
+  }
+
+  try{
+    const res = await fetch('http://localhost:8080/api/users/settings', {
+      method:'PUT',
+      headers:{
+        'Authorization':'Bearer '+token,
+        'Content-Type':'application/json'
+      },
+      body: JSON.stringify({ username, email, password })
+    });
+
+    const data = await res.json();
+
+    if(!res.ok){
+      showNotification(data.message || 'Update failed','error');
+      return;
+    }
+
+    showNotification('Settings updated successfully');
+    document.getElementById('password').value = ''; // clear password
+  }catch(err){
+    console.error(err);
+    showNotification('Update failed','error');
+  }
+});
+</script>
+
+</body>
+</html>

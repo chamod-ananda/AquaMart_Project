@@ -1,0 +1,82 @@
+/* Global responsive enhancements for AquaMart */
+
+/* Defaults */
+html { scroll-behavior: smooth; }
+img, video { max-width: 100%; height: auto; }
+* { box-sizing: border-box; }
+
+/* Layout helpers */
+.bb-container { width: 100%; margin-left: auto; margin-right: auto; padding-left: 1rem; padding-right: 1rem; }
+
+/* Sidebar: off-canvas on tablets/phones */
+@media (max-width: 992px) {
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: -260px; /* hidden off screen */
+    height: 100vh;
+    width: 240px;
+    z-index: 1100;
+    box-shadow: 2px 0 16px rgba(0,0,0,0.25);
+    transition: left .28s ease;
+  }
+  .sidebar.show { left: 0; }
+
+  .sidebar-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.35);
+    z-index: 1090;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity .2s ease;
+  }
+  .sidebar-overlay.show { opacity: 1; visibility: visible; }
+
+  .main { margin-left: 0 !important; padding: 1rem !important; }
+
+  .bb-sidebar-toggle {
+    position: fixed;
+    top: 12px;
+    left: 12px;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: none;
+    background: #2C2A7B;
+    color: #fff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1200;
+    box-shadow: 0 6px 16px rgba(0,0,0,0.25);
+  }
+  .bb-sidebar-toggle:active { transform: scale(0.98); }
+}
+
+/* Laptop tweaks */
+@media (min-width: 993px) and (max-width: 1366px) {
+  .main { padding: 1.5rem; }
+}
+
+/* Cards and grids unify spacing */
+.row.g-4 > [class^="col"], .row.g-3 > [class^="col"] { display: block; }
+
+/* Auth pages stack on mobile */
+@media (max-width: 768px) {
+  .login-card, .signup-card { flex-direction: column !important; max-width: 520px; }
+  .login-card .col-md-6.d-none.d-md-block,
+  .signup-card .col-md-6.d-none.d-md-block { display: none !important; }
+  .form-container { padding: 1.5rem !important; }
+  .messages-container { height: 70vh !important; }
+  .welcome-buttons .btn { width: 100% !important; margin-right: 0 !important; }
+}
+
+/* Tables: make parent sections scroll horizontally when needed */
+.admin-table, .table-responsive, .table-wrap { overflow-x: auto; }
+
+/* Chat specific adjustments */
+@media (max-width: 768px) {
+  .chat-container { height: 85vh !important; }
+  .chat-conv-list { height: 220px !important; }
+}

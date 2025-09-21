@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>AquaMart Signup</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
+    <link href="../assets/css/responsive.css" rel="stylesheet">
+    <style>
+        /*body {*/
+        /*    background: linear-gradient(135deg, #c3dafe, #e0c3fc);*/
+        /*    min-height: 100vh;*/
+        /*    display: flex;*/
+        /*    justify-content: center;*/
+        /*    align-items: center;*/
+        /*    font-family: 'Segoe UI', sans-serif;*/
+        /*}*/
+        /*.signup-card {*/
+        /*    border-radius: 15px;*/
+        /*    overflow: hidden;*/
+        /*    max-width: 900px;*/
+        /*    width: 100%;*/
+        /*    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);*/
+        /*}*/
+        /*.form-container {*/
+        /*    padding: 3rem;*/
+        /*}*/
+        body {
+            background: linear-gradient(135deg, #d1fae5, #34d399);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Segoe UI', sans-serif;
+        }
+        .signup-card {
+            border-radius: 15px;
+            overflow: hidden;
+            max-width: 900px;
+            width: 100%;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+            background: #ffffff;
+        }
+
+
+    </style>
+</head>
+<body>
+
+<div class="card signup-card d-flex flex-row">
+    <!-- Image Section -->
+<!--    <div class="col-md-6 d-none d-md-block p-0">-->
+<!--        <img src="/assets/images/signup.jpg" -->
+<!--             alt="AquaMart Signup" -->
+<!--             class="img-fluid h-100 w-100" -->
+<!--             style="object-fit: cover; border-top-left-radius: 15px; border-bottom-left-radius: 15px;">-->
+<!--    </div>-->
+
+    <!-- Form Section -->
+    <div class="col-md-6 bg-white form-container">
+        <h3 class="fw-bold">Join the AquaMart Family!</h3>
+        <p class="text-muted">Sign up to get started on your fish’s journey.</p>
+
+        <form id="signupForm">
+            <div class="mb-3">
+                <label for="username" class="form-label">Username</label>
+                <input type="text" class="form-control" id="username" placeholder="Enter your username" required>
+            </div>
+            <div class="mb-3">
+                <label for="email" class="form-label">Your Email</label>
+                <input type="email" class="form-control" id="email" placeholder="name@gmail.com" required>
+            </div>
+            <div class="mb-3">
+                <label for="password" class="form-label">Password</label>
+                <input type="password" class="form-control" id="password" placeholder="********" required>
+            </div>
+            <button type="submit" class="btn btn-primary w-100 mb-3">Register</button>
+            <div class="text-center">
+                <small>Already have an account? <a href="login.html">Log in</a></small>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    document.getElementById('signupForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        const username = document.getElementById('username').value;
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+
+        try {
+            const response = await fetch('http://localhost:8080/auth/aquamart/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, email, password })
+            });
+            const result = await response.json();
+            
+            if (response.ok && result.data) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Registration Successful!',
+                    text: 'You can now log in to your account.',
+                    confirmButtonText: 'OK'
+                }).then(() => {
+                    window.location.href = 'login.html';
+                });
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Registration Failed',
+                    text: result.message || 'Something went wrong. Please try again.'
+                });
+            }
+        } catch (err) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Connection Error',
+                text: 'Unable to connect to the server. Please try again later.'
+            });
+        }
+    });
+
+</script>
+</body>
+</html>

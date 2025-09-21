@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AquaMart - Admin Dashboard</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+  <link rel="stylesheet" href="../assets/css/navigation.css"/>
+  <link rel="stylesheet" href="../assets/css/responsive.css"/>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to bottom right, #a6ffea, #596dcd);
+      min-height: 100vh;
+      margin: 0;
+    }
+    .main {
+      margin-left: 250px;
+      padding: 20px;
+      min-height: 100vh;
+    }
+    .stats-card {
+      background: white;
+      border-radius: 15px;
+      padding: 20px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+      transition: transform 0.3s ease;
+    }
+    .stats-card:hover {
+      transform: translateY(-5px);
+    }
+    .stats-number {
+      font-size: 2.5rem;
+      font-weight: bold;
+      color: #6f42c1;
+    }
+    .admin-table {
+      background: white;
+      border-radius: 15px;
+      overflow: hidden;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+    .btn-add-admin {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border: none;
+      border-radius: 10px;
+      padding: 10px 20px;
+      color: white;
+      font-weight: 500;
+    }
+    .btn-add-admin:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    }
+    .modal-content {
+      border-radius: 15px;
+      border: none;
+    }
+    .modal-header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border-top-left-radius: 15px;
+      border-top-right-radius: 15px;
+    }
+    .form-control {
+      border-radius: 10px;
+      border: 2px solid #e9ecef;
+      transition: border-color 0.3s ease;
+    }
+    .form-control:focus {
+      border-color: #667eea;
+      box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+    }
+    @media (max-width: 768px) {
+      .main {
+        margin-left: 0;
+        padding: 10px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Sidebar -->
+  <div class="sidebar d-flex flex-column">
+  <h4>� <strong>AquaMart</strong></h4>
+    <nav class="nav flex-column mt-4">
+      <a class="nav-link active" href="adminDashboard.html" data-page="admin">👑 Admin Panel</a>
+      <a class="nav-link" href="adminListing.html" data-page="listings">📄 Listings</a>
+      <a class="nav-link" href="adminPayments.html" data-page="payments">💳 Payments</a>
+      <a class="nav-link" href="adminSetting.html" data-page="setting">⚙️ Setting</a>
+      <a class="nav-link mt-auto" href="#" onclick="window.barkBuddyNav.logout(); return false;">🚪 Logout</a>
+    </nav>
+  </div>
+
+  <!-- Main Content -->
+  <div class="main">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h2>👑 Admin Management</h2>
+      <button class="btn btn-add-admin" data-bs-toggle="modal" data-bs-target="#addAdminModal">
+        <i class="fas fa-plus me-2"></i>Add New Admin
+      </button>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+      <div class="col-md-4">
+        <div class="stats-card text-center">
+          <div class="stats-number" id="totalUsers">-</div>
+          <h5 class="text-muted">Total Users</h5>
+          <i class="fas fa-users fa-2x text-primary"></i>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="stats-card text-center">
+          <div class="stats-number" id="totalAdmins">-</div>
+          <h5 class="text-muted">Total Admins</h5>
+          <i class="fas fa-user-shield fa-2x text-success"></i>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="stats-card text-center">
+          <div class="stats-number" id="totalRegularUsers">-</div>
+          <h5 class="text-muted">Regular Users</h5>
+          <i class="fas fa-user fa-2x text-info"></i>
+        </div>
+      </div>
+    </div>
+
+    <!-- Admins Table -->
+    <div class="admin-table">
+      <div class="table-responsive">
+        <table class="table table-hover mb-0">
+          <thead class="table-light">
+            <tr>
+              <th><i class="fas fa-hashtag me-2"></i>ID</th>
+              <th><i class="fas fa-user me-2"></i>Username</th>
+              <th><i class="fas fa-envelope me-2"></i>Email</th>
+              <th><i class="fas fa-shield-alt me-2"></i>Role</th>
+              <th><i class="fas fa-cogs me-2"></i>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="adminsTableBody">
+            <tr>
+              <td colspan="5" class="text-center py-4">
+                <i class="fas fa-spinner fa-spin me-2"></i>Loading admins...
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Admin Modal -->
+  <div class="modal fade" id="addAdminModal" tabindex="-1" aria-labelledby="addAdminModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="addAdminModalLabel">
+            <i class="fas fa-user-plus me-2"></i>Add New Admin
+          </h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form id="addAdminForm">
+            <div class="mb-3">
+              <label for="adminUsername" class="form-label">
+                <i class="fas fa-user me-2"></i>Username
+              </label>
+              <input type="text" class="form-control" id="adminUsername" name="username" required>
+              <div class="invalid-feedback"></div>
+            </div>
+            <div class="mb-3">
+              <label for="adminEmail" class="form-label">
+                <i class="fas fa-envelope me-2"></i>Email
+              </label>
+              <input type="email" class="form-control" id="adminEmail" name="email" required>
+              <div class="invalid-feedback"></div>
+            </div>
+            <div class="mb-3">
+              <label for="adminPassword" class="form-label">
+                <i class="fas fa-lock me-2"></i>Password
+              </label>
+              <input type="password" class="form-control" id="adminPassword" name="password" required minlength="6">
+              <div class="form-text">Password must be at least 6 characters long.</div>
+              <div class="invalid-feedback"></div>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-primary" id="saveAdminBtn">
+            <i class="fas fa-save me-2"></i>Create Admin
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="../assets/js/navigation.js"></script>
+  <script>
+    const token = localStorage.getItem('accessToken');
+    if (!token) {
+      window.location.href = 'login.html';
+    }
+
+    // Toast notification function
+    function showToast(message, type = 'info') {
+      const toast = document.createElement('div');
+      toast.className = `toast align-items-center text-white bg-${type} border-0 position-fixed`;
+      toast.style.cssText = 'top: 20px; right: 20px; z-index: 9999;';
+      toast.innerHTML = `
+        <div class="d-flex">
+          <div class="toast-body">
+            <i class="fas fa-${type === 'danger' ? 'exclamation-triangle' : type === 'success' ? 'check' : 'info-circle'} me-2"></i>
+            ${message}
+          </div>
+          <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+        </div>
+      `;
+      document.body.appendChild(toast);
+      const bsToast = new bootstrap.Toast(toast);
+      bsToast.show();
+      setTimeout(() => toast.remove(), 5000);
+    }
+
+    // Load admin statistics
+    async function loadStats() {
+      try {
+        const response = await fetch('http://localhost:8080/api/admin/stats', {
+          headers: {
+            'Authorization': 'Bearer ' + token
+          }
+        });
+
+        if (!response.ok) throw new Error('Failed to load statistics');
+
+        const stats = await response.json();
+        document.getElementById('totalUsers').textContent = stats.totalUsers;
+        document.getElementById('totalAdmins').textContent = stats.totalAdmins;
+        document.getElementById('totalRegularUsers').textContent = stats.totalRegularUsers;
+      } catch (error) {
+        console.error('Error loading stats:', error);
+        showToast('Failed to load statistics', 'danger');
+      }
+    }
+
+    // Load admins list
+    async function loadAdmins() {
+      const tbody = document.getElementById('adminsTableBody');
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="5" class="text-center py-4">
+            <i class="fas fa-spinner fa-spin me-2"></i>Loading admins...
+          </td>
+        </tr>
+      `;
+
+      try {
+        const response = await fetch('http://localhost:8080/api/admin/admins', {
+          headers: {
+            'Authorization': 'Bearer ' + token
+          }
+        });
+
+        if (!response.ok) throw new Error('Failed to load admins');
+
+        const admins = await response.json();
+        
+        if (admins.length === 0) {
+          tbody.innerHTML = `
+            <tr>
+              <td colspan="5" class="text-center py-4 text-muted">
+                <i class="fas fa-users fa-2x mb-2"></i><br>
+                No admins found
+              </td>
+            </tr>
+          `;
+          return;
+        }
+
+        tbody.innerHTML = '';
+        admins.forEach(admin => {
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>${admin.id}</td>
+            <td>
+              <i class="fas fa-user-shield text-primary me-2"></i>
+              ${admin.username}
+            </td>
+            <td>${admin.email}</td>
+            <td>
+              <span class="badge bg-success">
+                <i class="fas fa-crown me-1"></i>${admin.role}
+              </span>
+            </td>
+            <td>
+              <button class="btn btn-sm btn-outline-danger" onclick="deleteAdmin(${admin.id}, '${admin.username}')" 
+                      title="Delete Admin">
+                <i class="fas fa-trash"></i>
+              </button>
+            </td>
+          `;
+          tbody.appendChild(row);
+        });
+      } catch (error) {
+        console.error('Error loading admins:', error);
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="5" class="text-center py-4 text-danger">
+              <i class="fas fa-exclamation-triangle me-2"></i>
+              Failed to load admins: ${error.message}
+            </td>
+          </tr>
+        `;
+        showToast('Failed to load admins', 'danger');
+      }
+    }
+
+    // Add new admin
+    async function addAdmin(adminData) {
+      try {
+        const response = await fetch('http://localhost:8080/api/admin/admins', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + token
+          },
+          body: JSON.stringify(adminData)
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+          throw new Error(result.message || 'Failed to create admin');
+        }
+
+        showToast('Admin created successfully!', 'success');
+        loadAdmins();
+        loadStats();
+        bootstrap.Modal.getInstance(document.getElementById('addAdminModal')).hide();
+        document.getElementById('addAdminForm').reset();
+        
+        // Remove validation classes
+        document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+        
+      } catch (error) {
+        console.error('Error creating admin:', error);
+        showToast(error.message, 'danger');
+      }
+    }
+
+    // Delete admin
+    async function deleteAdmin(adminId, username) {
+      if (!confirm(`Are you sure you want to delete admin "${username}"? This action cannot be undone.`)) {
+        return;
+      }
+
+      try {
+        const response = await fetch(`http://localhost:8080/api/admin/admins/${adminId}`, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': 'Bearer ' + token
+          }
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+          throw new Error(result.message || 'Failed to delete admin');
+        }
+
+        showToast('Admin deleted successfully!', 'success');
+        loadAdmins();
+        loadStats();
+      } catch (error) {
+        console.error('Error deleting admin:', error);
+        showToast(error.message, 'danger');
+      }
+    }
+
+    // Form validation
+    function validateForm() {
+      const form = document.getElementById('addAdminForm');
+      const username = document.getElementById('adminUsername');
+      const email = document.getElementById('adminEmail');
+      const password = document.getElementById('adminPassword');
+      
+      let isValid = true;
+
+      // Reset validation states
+      [username, email, password].forEach(input => {
+        input.classList.remove('is-invalid');
+        input.nextElementSibling.textContent = '';
+      });
+
+      // Validate username
+      if (!username.value.trim()) {
+        username.classList.add('is-invalid');
+        username.nextElementSibling.textContent = 'Username is required';
+        isValid = false;
+      }
+
+      // Validate email
+      if (!email.value.trim()) {
+        email.classList.add('is-invalid');
+        email.nextElementSibling.textContent = 'Email is required';
+        isValid = false;
+      } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value)) {
+        email.classList.add('is-invalid');
+        email.nextElementSibling.textContent = 'Please enter a valid email';
+        isValid = false;
+      }
+
+      // Validate password
+      if (!password.value.trim()) {
+        password.classList.add('is-invalid');
+        password.nextElementSibling.textContent = 'Password is required';
+        isValid = false;
+      } else if (password.value.length < 6) {
+        password.classList.add('is-invalid');
+        password.nextElementSibling.textContent = 'Password must be at least 6 characters';
+        isValid = false;
+      }
+
+      return isValid;
+    }
+
+    // Event listeners
+    document.getElementById('saveAdminBtn').addEventListener('click', () => {
+      if (validateForm()) {
+        const formData = new FormData(document.getElementById('addAdminForm'));
+        const adminData = Object.fromEntries(formData.entries());
+        addAdmin(adminData);
+      }
+    });
+
+    // Load data on page load
+    document.addEventListener('DOMContentLoaded', function() {
+      loadStats();
+      loadAdmins();
+      
+      // Auto-refresh with better performance and user control
+      let autoRefreshEnabled = true;
+      let refreshInterval;
+      
+      function startAutoRefresh() {
+        if (refreshInterval) clearInterval(refreshInterval);
+        
+        refreshInterval = setInterval(() => {
+          if (autoRefreshEnabled && document.visibilityState === 'visible') {
+            loadStats();
+            loadAdmins();
+          }
+        }, 60000); // Increased to 60 seconds to reduce server load
+      }
+      
+      // Add refresh control button
+      const refreshControl = document.createElement('div');
+      refreshControl.innerHTML = `
+        <div class="position-fixed" style="top: 80px; right: 20px; z-index: 1000;">
+          <button id="refreshToggle" class="btn btn-sm btn-outline-secondary" onclick="toggleAutoRefresh()">
+            <i class="fas fa-sync-alt"></i> Auto-refresh: ON
+          </button>
+        </div>
+      `;
+      document.body.appendChild(refreshControl);
+      
+      // Global function for refresh toggle
+      window.toggleAutoRefresh = function() {
+        autoRefreshEnabled = !autoRefreshEnabled;
+        const btn = document.getElementById('refreshToggle');
+        if (autoRefreshEnabled) {
+          btn.innerHTML = '<i class="fas fa-sync-alt"></i> Auto-refresh: ON';
+          btn.className = 'btn btn-sm btn-outline-success';
+          startAutoRefresh();
+        } else {
+          btn.innerHTML = '<i class="fas fa-sync-alt"></i> Auto-refresh: OFF';
+          btn.className = 'btn btn-sm btn-outline-secondary';
+          clearInterval(refreshInterval);
+        }
+      };
+      
+      // Pause auto-refresh when page is not visible
+      document.addEventListener('visibilitychange', function() {
+        if (document.visibilityState === 'visible' && autoRefreshEnabled) {
+          startAutoRefresh();
+        } else if (document.visibilityState === 'hidden') {
+          clearInterval(refreshInterval);
+        }
+      });
+      
+      startAutoRefresh();
+    });
+
+    // Make functions global for onclick handlers
+    window.deleteAdmin = deleteAdmin;
+  </script>
+</body>
+</html>

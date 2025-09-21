@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OAuth Callback</title>
+    <link href="../assets/css/responsive.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/jwt-decode@3.1.2/build/jwt-decode.min.js"></script>
+</head>
+<body>
+    <div style="display: flex; justify-content: center; align-items: center; height: 100vh; font-family: Arial, sans-serif;">
+        <div>
+            <h3>Processing Google Login...</h3>
+            <p>Please wait while we complete your authentication.</p>
+        </div>
+    </div>
+
+    <script>
+        // Extract parameters from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const token = urlParams.get('token');
+        const userId = urlParams.get('userId');
+        const email = urlParams.get('email');
+        const username = urlParams.get('username');
+        const role = urlParams.get('role');
+
+        if (token && userId && email && username && role) {
+            // Store the token and user data in localStorage
+            localStorage.setItem('accessToken', token);
+            localStorage.setItem('userRole', role);
+            localStorage.setItem('userData', JSON.stringify({
+                id: userId,
+                email: email,
+                username: username,
+                role: role
+            }));
+
+            // Redirect based on role
+            if (role === 'ADMIN') {
+                window.location.href = 'adminDashboard.html';
+            } else {
+                window.location.href = 'dashboard.html';
+            }
+        } else {
+            // If parameters are missing, redirect to login with error
+            alert('OAuth login failed. Please try again.');
+            window.location.href = 'login.html';
+        }
+    </script>
+</body>
+</html>

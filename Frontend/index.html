@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AquaMart • Find, Buy, and Care</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <link href="assets/css/responsive.css" rel="stylesheet">
+  <style>
+    /*:root{*/
+    /*  --bb-primary: #2C2A7B;*/
+    /*  --bb-accent: #FEC83C;*/
+    /*  --bb-bg: #f8f9fa;*/
+    /*  --bb-dark: #1b1b3a;*/
+    /*}*/
+    :root{
+      --bb-primary: #2563EB;
+      --bb-accent: #10B981;
+      --bb-bg: #FFFFFF;
+      --bb-dark: #1F2937;
+    }
+
+
+    *{ box-sizing: border-box; }
+    body{ font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; overflow-x: hidden; }
+
+    /* Topbar */
+    .bb-navbar{
+      background: linear-gradient(135deg, var(--bb-primary), #5a58c6);
+      color:#fff;
+    }
+    .navbar-toggler { border-color: rgba(255,255,255,.35); }
+    .navbar-toggler-icon { filter: invert(1) grayscale(100%) brightness(200%); }
+    .bb-navbar .navbar-brand{ color:#fff !important; font-weight:700; letter-spacing:.5px; }
+    .bb-navbar .nav-link{ color:#fff !important; opacity:.9; }
+    .bb-navbar .nav-link:hover{ opacity:1; }
+    .bb-btn-auth{ border-radius: 24px; padding: .5rem 1rem; border:2px solid #fff; color:#fff; background: transparent; }
+    .bb-btn-auth:hover{ color: var(--bb-primary); background:#fff; }
+    .bb-btn-dash{ border-radius:24px; padding:.5rem 1rem; background:#fff; color:var(--bb-primary); border:none; }
+
+    /* Hero */
+    .hero{
+      position: relative;
+      background: linear-gradient(135deg, var(--bb-primary), var(--bb-accent));
+      color: #fff;
+      min-height: 85vh;
+      display:flex; align-items:center; overflow:hidden;
+    }
+    .hero .lead{ opacity:.95; }
+    .hero-img{
+      border-radius: 20px; box-shadow: 0 20px 40px rgba(0,0,0,.25);
+    }
+    .hero-cta .btn{ border-radius:28px; padding:.9rem 1.4rem; font-weight:600; }
+    .btn-cta-primary{ background:#fff; color:var(--bb-primary); }
+    .btn-cta-outline{ border:2px solid #fff; color:#fff; }
+    .btn-cta-outline:hover{ color:var(--bb-primary); background:#fff; }
+
+    /* Key features */
+    .section{ padding: 80px 0; }
+    .features .card{ border:0; border-radius:16px; box-shadow:0 10px 25px rgba(0,0,0,.08); height:100%; }
+    .features .icon{ font-size:2rem; color:var(--bb-primary); background: rgba(44,42,123,.08); width:56px; height:56px; display:grid; place-items:center; border-radius:12px; }
+
+    /* How it works */
+    .how-step{ display:flex; gap:14px; align-items:flex-start; margin-bottom:16px; }
+    .step-num{ background: var(--bb-primary); color:#fff; width:28px; height:28px; border-radius:50%; font-size:.9rem; display:grid; place-items:center; margin-top:2px; }
+
+    /* CTA band */
+    .cta{ background: linear-gradient(135deg, var(--bb-primary), #5a58c6); color:#fff; border-radius:16px; padding:32px; }
+
+    /* Footer */
+    footer{ background:#0f0f1f; color:#b9b9d0; }
+    footer a{ color:#d9d9ff; text-decoration:none; }
+    footer a:hover{ text-decoration:underline; }
+
+    @media (max-width: 992px){
+      .hero{ min-height: auto; padding-top: 100px; }
+      .hero-img{ margin-top: 24px; }
+    }
+  </style>
+<!--  <link rel="preload" as="image" href="assets/images/im2.jpg">-->
+<!--  <link rel="preload" as="image" href="assets/images/img1.jpg">-->
+</head>
+<body>
+
+  <!-- Top Navigation -->
+  <nav class="navbar navbar-expand-lg bb-navbar fixed-top">
+    <div class="container">
+      <a class="navbar-brand" href="#"><i class="fa-solid fa-fish-fins"></i>AquaMart</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#topnav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="topnav">
+        <ul class="navbar-nav ms-auto align-items-lg-center gap-2">
+          <li class="nav-item"><a class="nav-link" href="#features">Features</a></li>
+          <li class="nav-item"><a class="nav-link" href="#how">How it works</a></li>
+          <li class="nav-item"><a class="nav-link" href="#contact">Contact</a></li>
+          <li class="nav-item d-none" id="nav-dashboard-item">
+            <button class="bb-btn-dash" id="btnGoDashboard"><i class="fa-solid fa-gauge-high me-1"></i>Dashboard</button>
+          </li>
+          <li class="nav-item" id="nav-auth-item">
+            <div class="d-flex gap-2">
+              <button class="bb-btn-auth" id="btnLogin"><i class="fa-solid fa-right-to-bracket me-1"></i>Sign in</button>
+              <button class="bb-btn-auth" id="btnSignup"><i class="fa-solid fa-user-plus me-1"></i>Sign up</button>
+            </div>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <header class="hero">
+    <div class="container py-5">
+      <div class="row align-items-center">
+        <div class="col-lg-6">
+          <h1 class="display-5 fw-bold">Find your next best friend with AquaMart</h1>
+          <p class="lead mt-3">Discover fish, tanks, plants, and foods. Buy what you love, chat with owners, and get AI help—all in one place.</p>
+          <div class="hero-cta mt-4 d-flex flex-wrap gap-2">
+            <button class="btn btn-cta-primary" id="ctaAdopt"><i class="fa-solid fa-heart me-1"></i> Browse Fish</button>
+            <button class="btn btn-light" id="ctaListings" style="border-radius:28px;"><i class="fa-solid fa-list me-1"></i> Listings</button>
+          </div>
+        </div>
+<!--        <div class="col-lg-6 mt-4 mt-lg-0 text-center">-->
+<!--          <img src="assets/images/im2.jpg" class="img-fluid hero-img" alt="Happy fish and owner">-->
+<!--        </div>-->
+      </div>
+    </div>
+  </header>
+
+  <!-- Features aligned to project -->
+  <section id="features" class="section features bg-light">
+    <div class="container">
+      <div class="text-center mb-5">
+  <h2 class="fw-bold">Everything you need for a smooth purchase</h2>
+        <p class="text-muted">Built around AquaMart's core pages and workflows</p>
+      </div>
+      <div class="row g-4">
+        <div class="col-md-6 col-lg-3">
+          <div class="card h-100 p-3">
+            <div class="icon mb-3"><i class="fa-solid fa-fish"></i></div>
+            <h5>Shop Fish</h5>
+            <p class="text-muted">Browse all fish, view availability, and buy with one click.</p>
+            <button class="btn btn-sm btn-outline-primary mt-auto" id="featAdopt">Go to Shop</button>
+          </div>
+        </div>
+        
+        <div class="col-md-6 col-lg-3">
+          <div class="card h-100 p-3">
+            <div class="icon mb-3"><i class="fa-solid fa-comments"></i></div>
+            <h5>Messages</h5>
+            <p class="text-muted">Chat with fish owners in a WhatsApp-like interface.</p>
+            <button class="btn btn-sm btn-outline-primary mt-auto" id="featMessages">Open Messages</button>
+          </div>
+        </div>
+        
+      </div>
+    </div>
+  </section>
+
+  <!-- How it works -->
+  <section id="how" class="section">
+    <div class="container">
+      <div class="row align-items-center g-4">
+<!--        <div class="col-lg-6 order-2 order-lg-1">-->
+<!--          <img src="assets/images/img3.jpg" class="img-fluid rounded-4 shadow" alt="App preview">-->
+<!--        </div>-->
+        <div class="col-lg-6 order-1 order-lg-2">
+          <h3 class="fw-bold">Start in minutes</h3>
+          <div class="mt-3">
+            <div class="how-step">
+              <div class="step-num">1</div>
+              <div>
+                <strong>Create your account</strong>
+                <div class="text-muted">Sign up or use Google auth, then jump to your dashboard.</div>
+              </div>
+            </div>
+            <div class="how-step">
+              <div class="step-num">2</div>
+              <div>
+                <strong>Browse and connect</strong>
+                <div class="text-muted">Explore fish, chat with owners, or place orders.</div>
+              </div>
+            </div>
+            
+          </div>
+          <div class="mt-4">
+            <button class="btn btn-warning me-2" id="btnGetStarted"><i class="fa-solid fa-fish-fins"></i>oo Get Started</button>
+            <button class="btn btn-outline-secondary" id="btnToDashboard"><i class="fa-solid fa-gauge-high me-1"></i> Go to Dashboard</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Call to action band -->
+  <section class="section py-0">
+    <div class="container">
+      <div class="cta d-flex flex-column flex-lg-row align-items-center justify-content-between">
+        <div>
+          <h4 class="mb-1">Ready to meet your AquaMart?</h4>
+          <div class="opacity-75">Join thousands of happy pet parents today.</div>
+        </div>
+        <div class="mt-3 mt-lg-0">
+          <button class="btn btn-light me-2" id="ctaSignup"><i class="fa-solid fa-user-plus me-1"></i> Create account</button>
+          <button class="btn btn-outline-light" id="ctaLogin"><i class="fa-solid fa-right-to-bracket me-1"></i> Sign in</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="mt-5 pt-5 pb-4">
+    <div class="container">
+      <div class="row g-4">
+        <div class="col-md-6 col-lg-4">
+          <h5 class="text-white"><i class="fa-solid fa-fish-fins"></i>AquaMart</h5>
+          <p class="mt-2">Connecting loving pets with their perfect families. One pet at a time.</p>
+        </div>
+        <div class="col-md-6 col-lg-2">
+          <h6 class="text-white">Explore</h6>
+          <ul class="list-unstyled small">
+            <li><a href="#features">Features</a></li>
+            <li><a href="#how">How it works</a></li>
+            
+          </ul>
+        </div>
+        <div class="col-md-6 col-lg-3" id="contact">
+          <h6 class="text-white">Contact</h6>
+          <ul class="list-unstyled small">
+            <li>Email: infaquamart@gmail.com</li>
+            <li>Community: <a href="#">Join us</a></li>
+          </ul>
+        </div>
+        <div class="col-md-6 col-lg-3 text-md-end">
+          <div class="small">&copy; 2025 AquaMart • All rights reserved</div>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
+  
+  <script>
+    // Simple auth-aware navigation: if logged in, go to pages; else go to login/signup
+    const hasToken = !!localStorage.getItem('accessToken');
+
+    // Toggle top-right items
+    const navDashItem = document.getElementById('nav-dashboard-item');
+    const navAuthItem = document.getElementById('nav-auth-item');
+    if (hasToken) {
+      navDashItem?.classList.remove('d-none');
+      navAuthItem?.classList.add('d-none');
+    } else {
+      navDashItem?.classList.add('d-none');
+      navAuthItem?.classList.remove('d-none');
+    }
+
+    // Helper to route based on auth
+    function go(page){
+      if (hasToken) window.location.href = page; else window.location.href = 'pages/login.html';
+    }
+
+    // Header buttons
+    document.getElementById('btnLogin').onclick = () => window.location.href = 'pages/login.html';
+    document.getElementById('btnSignup').onclick = () => window.location.href = 'pages/signup.html';
+    document.getElementById('btnGoDashboard').onclick = () => window.location.href = 'pages/dashboard.html';
+
+    // Hero CTAs
+  document.getElementById('ctaAdopt').onclick = () => go('pages/adoptFriend.html');
+    document.getElementById('ctaListings').onclick = () => go('pages/listings.html');
+
+    // Feature buttons
+  document.getElementById('featAdopt').onclick = () => go('pages/adoptFriend.html');
+    document.getElementById('featMessages').onclick = () => go('pages/messages.html');
+    
+
+    // How it works buttons
+    document.getElementById('btnGetStarted').onclick = () => window.location.href = hasToken ? 'pages/dashboard.html' : 'pages/signup.html';
+    document.getElementById('btnToDashboard').onclick = () => window.location.href = hasToken ? 'pages/dashboard.html' : 'pages/login.html';
+
+    // CTA band buttons
+    document.getElementById('ctaSignup').onclick = () => window.location.href = 'pages/signup.html';
+    document.getElementById('ctaLogin').onclick = () => window.location.href = 'pages/login.html';
+
+    // Optional: redirect authenticated users straight to dashboard after a brief view
+    // Uncomment if you want auto-redirect
+    // if (hasToken) {
+    //   setTimeout(() => window.location.href = 'pages/dashboard.html', 1200);
+    // }
+  </script>
+</body>
+</html>

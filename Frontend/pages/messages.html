@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AquaMart - Messages</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <link rel="stylesheet" href="../assets/css/navigation.css"/>
+  <link rel="stylesheet" href="../assets/css/chat.css"/>
+  <link rel="stylesheet" href="../assets/css/responsive.css"/>
+  <style>
+    body { 
+      font-family:'Segoe UI', sans-serif; 
+      background:linear-gradient(to bottom right, #a6ffea, #596dcd);
+      min-height:100vh; 
+      margin:0; 
+    }
+    .main { 
+      margin-left:240px; 
+      padding:2rem; 
+    }
+    .messages-container {
+      background: white;
+      border-radius: 15px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+      overflow: hidden;
+      height: 80vh;
+      display: flex;
+    }
+    .conversations-panel {
+      width: 35%;
+      border-right: 1px solid #e5e5e5;
+      background: #f8f9fa;
+      display: flex;
+      flex-direction: column;
+    }
+    .conv-header {
+      padding: 20px;
+      background: linear-gradient(135deg, #25D366, #128C7E);
+      color: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .conv-header h4 {
+      margin: 0;
+      font-weight: 600;
+    }
+    .conv-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 0;
+    }
+    .conv-item {
+      padding: 15px 20px;
+      border-bottom: 1px solid #f0f0f0;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      background: white;
+    }
+    .conv-item:hover {
+      background: #f5f5f5;
+    }
+    .conv-item.active {
+      background: #e3f2fd;
+      border-left: 4px solid #25D366;
+    }
+    .conv-item .title {
+      font-weight: 600;
+      font-size: 14px;
+      margin-bottom: 4px;
+      color: #333;
+    }
+    .conv-item .preview {
+      font-size: 12px;
+      color: #666;
+      margin-bottom: 4px;
+      display: -webkit-box;
+      -webkit-line-clamp: 1;
+      line-clamp: 1;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .conv-item .time {
+      font-size: 11px;
+      color: #999;
+    }
+    .chat-panel {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background: #ffffff;
+    }
+    .chat-header {
+      padding: 20px;
+      background: #075e54;
+      color: white;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .chat-header h5 {
+      margin: 0;
+      font-weight: 600;
+    }
+    .chat-status {
+      font-size: 12px;
+      opacity: 0.8;
+    }
+    .empty-chat {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      color: #666;
+      background: #f8f9fa;
+    }
+    .empty-chat i {
+      font-size: 4rem;
+      margin-bottom: 1rem;
+      opacity: 0.3;
+    }
+    @media (max-width: 768px) {
+      .main { margin-left: 0; padding: 1rem; }
+      .conversations-panel { width: 100%; }
+      .chat-panel { display: none; }
+      .messages-container { height: 70vh; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Sidebar -->
+<div class="sidebar d-flex flex-column">
+  <h4>🐡 <strong>AquaMart</strong></h4>
+    <nav class="nav flex-column mt-4">
+    <a class="nav-link" href="dashboard.html" data-page="dashboard">🏠 Dashboard</a>
+  <a class="nav-link" href="adoptFriend.html" data-page="adopt">💛 Buy a Friend</a>
+  <a class="nav-link" href="myItem.html" data-page="myItem">🐟 My Items</a>
+    <a class="nav-link" href="listings.html" data-page="listings">📄 Listings & Requests</a>
+    <a class="nav-link" href="messages.html" data-page="messages">💬 Messages</a>
+    <a class="nav-link" href="setting.html" data-page="setting">⚙️ Setting</a>
+    <a class="nav-link mt-auto" href="#" onclick="window.barkBuddyNav.logout(); return false;">🚪 Logout</a>
+    </nav>
+  </div>
+
+  <div class="main">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h3>💬 Messages</h3>
+      <button class="btn btn-success" onclick="loadConversations()">
+        <i class="fas fa-rotate"></i> Refresh
+      </button>
+    </div>
+    
+    <div class="messages-container">
+      <!-- Conversations Panel -->
+      <div class="conversations-panel">
+        <div class="conv-header">
+          <h4><i class="fas fa-comments me-2"></i>Chats</h4>
+          <button class="btn btn-sm btn-light" onclick="loadConversations()" title="Refresh">
+            <i class="fas fa-rotate"></i>
+          </button>
+        </div>
+        <div class="conv-list" id="conversationsList">
+          <div class="p-4 text-center text-muted">
+            <i class="fas fa-spinner fa-spin me-2"></i>Loading conversations...
+          </div>
+        </div>
+      </div>
+
+      <!-- Chat Panel -->
+      <div class="chat-panel" id="chatPanel">
+        <div class="empty-chat" id="emptyChatState">
+          <i class="fas fa-comments"></i>
+          <h5>Select a conversation</h5>
+          <p class="text-muted">Choose a chat from the sidebar to start messaging</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="../assets/js/navigation.js"></script>
+  <script src="../assets/js/chat.js"></script>
+  <script>
+    const token = localStorage.getItem('accessToken');
+    if(!token){ window.location.href='login.html'; }
+    
+    let currentChat = { itemId:null, otherUserId:null, itemName:'', otherUsername:'' };
+    
+    // Get user ID from userData stored during login
+    let myUserId;
+    try {
+      const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+      myUserId = userData.id;
+    } catch (e) {
+      console.error('Failed to parse userData:', e);
+      myUserId = Number(localStorage.getItem('userId')); // fallback
+    }
+
+    function showNotification(msg, type='info'){
+      const toast = document.createElement('div');
+      toast.className = `toast align-items-center text-white bg-${type === 'error' ? 'danger' : type === 'success' ? 'success' : 'info'} border-0 position-fixed`;
+      toast.style.cssText = 'top:20px; right:20px; z-index:9999;';
+      toast.innerHTML = `
+        <div class="d-flex">
+          <div class="toast-body"><i class="fas fa-${type === 'error' ? 'exclamation-triangle' : type === 'success' ? 'check' : 'info-circle'} me-2"></i>${msg}</div>
+          <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+        </div>`;
+      document.body.appendChild(toast);
+      const bsToast = new bootstrap.Toast(toast);
+      bsToast.show();
+      setTimeout(() => toast.remove(), 4000);
+    }
+
+    function formatMessageTime(timestamp) {
+      const d = new Date(timestamp);
+      const today = new Date();
+      if(d.toDateString() === today.toDateString()) {
+        return d.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+      }
+      return d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+    }
+
+    function truncateText(text, maxLength) {
+      return text && text.length > maxLength ? text.substring(0, maxLength - 1) + '…' : text || '';
+    }
+
+    async function loadConversations(){
+      const container = document.getElementById('conversationsList');
+      container.innerHTML = '<div class="p-4 text-center text-muted"><i class="fas fa-spinner fa-spin me-2"></i>Loading conversations...</div>';
+      
+      try {
+        const res = await fetch('http://localhost:8080/api/user-chat/conversations',{ 
+          headers:{ 'Authorization':'Bearer '+token }
+        });
+        
+        if(!res.ok) throw new Error('Failed to load conversations');
+        const data = await res.json();
+        
+        if(!Array.isArray(data) || data.length===0){
+          container.innerHTML = `
+            <div class='p-4 text-center text-muted'>
+              <i class="fas fa-comments fa-3x mb-3 opacity-50"></i>
+              <h6>No conversations yet</h6>
+              <small>Start chatting with fish owners from adoption pages</small>
+            </div>`;
+          return;
+        }
+        
+        container.innerHTML='';
+        data.forEach((conv, index) => {
+          const item = document.createElement('div');
+          item.className = 'conv-item';
+          if(currentChat.itemId === conv.itemId && currentChat.otherUserId === conv.otherUserId) {
+            item.classList.add('active');
+          }
+          
+          const time = formatMessageTime(conv.lastTimestamp);
+          item.innerHTML = `
+            <div class="title">
+              <i class="fas fa-fish text-warning me-1"></i> 
+              ${truncateText(conv.itemName, 20)}
+            </div>
+            <div class="preview">
+              <strong>${conv.otherUsername}:</strong> ${truncateText(conv.lastMessage, 30)}
+            </div>
+            <div class="time">${time}</div>`;
+          
+          item.onclick = () => openConversation(conv.itemId, conv.otherUserId, conv.itemName, conv.otherUsername);
+          container.appendChild(item);
+          
+          // Add entrance animation
+          setTimeout(() => item.style.transform = 'translateX(0)', index * 50);
+        });
+      } catch(e){
+        container.innerHTML = `<div class='p-3 text-danger'><i class="fas fa-exclamation-triangle me-1"></i>${e.message}</div>`;
+        showNotification(e.message, 'error');
+      }
+    }
+
+    function openConversation(itemId, otherUserId, itemName, otherUsername) {
+      console.log('Opening conversation:', {itemId, otherUserId, itemName, otherUsername, myUserId});
+      
+      // Prevent self-chat
+      if(myUserId === otherUserId) {
+  showNotification('� This is your own item! You cannot chat with yourself.', 'info');
+        return;
+      }
+      
+      currentChat = { itemId, otherUserId, itemName, otherUsername };
+      
+      // Update active conversation
+      document.querySelectorAll('.conv-item').forEach(i => i.classList.remove('active'));
+      event.currentTarget.classList.add('active');
+      
+      // Hide empty state and create chat interface
+      document.getElementById('emptyChatState').style.display = 'none';
+      
+      // Create chat interface if it doesn't exist
+      let chatInterface = document.getElementById('chatInterface');
+      if(!chatInterface) {
+        chatInterface = document.createElement('div');
+        chatInterface.id = 'chatInterface';
+        chatInterface.className = 'd-flex flex-column h-100';
+        chatInterface.innerHTML = `
+          <div class="chat-header">
+            <div>
+              <h5 id="chatTitle">${itemName}</h5>
+              <div class="chat-status" id="chatStatus">Chat with ${otherUsername}</div>
+            </div>
+          </div>
+          <div id="chatMessages" class="flex-1 p-3" style="overflow-y: auto; flex: 1; background: #e5ddd5;">
+            <div class="text-center text-muted">
+              <i class="fas fa-spinner fa-spin me-2"></i>Loading messages...
+            </div>
+          </div>
+          <div class="p-3 bg-light">
+            <div class="d-flex gap-2">
+              <label class="btn btn-success" title="Attach image">
+                <i class="fas fa-image"></i>
+                <input type="file" id="messageImageInput" accept="image/*" style="display:none;" />
+              </label>
+              <input type="text" id="messageInput" class="form-control" placeholder="Type a message..." maxlength="500" />
+              <button id="sendMessageBtn" class="btn btn-success" title="Send message">
+                <i class="fas fa-paper-plane"></i>
+              </button>
+            </div>
+          </div>`;
+        document.getElementById('chatPanel').appendChild(chatInterface);
+        
+        // Add event listeners
+        document.getElementById('sendMessageBtn').addEventListener('click', sendMessage);
+        document.getElementById('messageInput').addEventListener('keydown', (e) => {
+          if(e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            sendMessage();
+          }
+        });
+        document.getElementById('messageImageInput').addEventListener('change', handleImageSelect);
+      } else {
+        chatInterface.style.display = 'flex';
+        document.getElementById('chatTitle').textContent = itemName;
+        document.getElementById('chatStatus').textContent = `Chat with ${otherUsername}`;
+      }
+      
+      loadMessages();
+    }
+
+    function handleImageSelect(event) {
+      const file = event.target.files[0];
+      if(file) {
+        console.log('Image selected:', {
+          name: file.name,
+          size: file.size,
+          type: file.type
+        });
+        
+        // Validate file size (max 5MB)
+        if(file.size > 5 * 1024 * 1024) {
+          showNotification('Image size must be less than 5MB', 'error');
+          event.target.value = '';
+          return;
+        }
+        
+        // Validate file type
+        if(!file.type.startsWith('image/')) {
+          showNotification('Please select a valid image file', 'error');
+          event.target.value = '';
+          return;
+        }
+        
+        // Show preview or immediately send
+        console.log('Auto-sending image message...');
+        sendMessage();
+      }
+    }
+
+    async function loadMessages(){
+      if(!currentChat.itemId) return;
+      
+      const msgsDiv = document.getElementById('chatMessages');
+      msgsDiv.innerHTML = '<div class="text-center text-muted"><i class="fas fa-spinner fa-spin me-2"></i>Loading messages...</div>';
+      
+      try {
+        const res = await fetch(`http://localhost:8080/api/user-chat/conversation/${currentChat.itemId}/${currentChat.otherUserId}`, { 
+          headers:{ 'Authorization':'Bearer '+token }
+        });
+        
+        if(!res.ok) throw new Error('Failed to load messages');
+        const data = await res.json();
+        
+        msgsDiv.innerHTML='';
+        
+        if(!Array.isArray(data) || data.length===0){
+          msgsDiv.innerHTML = `
+            <div class="text-center text-muted p-4">
+              <i class="fas fa-comments fa-2x mb-2 opacity-50"></i>
+              <p>No messages yet</p>
+              <small>Say hello to start the conversation! 👋</small>
+            </div>`;
+          return;
+        }
+        
+        let lastDay = '';
+        let lastSenderId = null;
+        data.forEach((msg, index) => {
+          const day = new Date(msg.timestamp).toDateString();
+          if(day !== lastDay){
+            const dayDiv = document.createElement('div');
+            dayDiv.className = 'text-center my-3';
+            dayDiv.innerHTML = `<span class="badge bg-light text-dark">${new Date(msg.timestamp).toLocaleDateString()}</span>`;
+            msgsDiv.appendChild(dayDiv);
+            lastDay = day;
+          }
+          
+          const bubble = document.createElement('div');
+          bubble.className = `d-flex mb-2 ${msg.senderId === myUserId ? 'justify-content-end' : 'justify-content-start'}`;
+          
+          const time = new Date(msg.timestamp).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+          
+          // Only show sender name for received messages (not for your own messages)
+          const isMyMessage = msg.senderId === myUserId;
+          const senderName = isMyMessage ? '' : currentChat.otherUsername;
+          const showSenderName = !isMyMessage && msg.senderId !== lastSenderId;
+          
+          let content = '';
+          if(msg.content && msg.content.trim() !== '') {
+            content += msg.content.replace(/</g,'&lt;').replace(/\n/g,'<br>');
+          }
+          if(msg.imageUrl) {
+            content += `<div class="mt-2"><img src="${msg.imageUrl}" alt="Image" style="max-width:200px; border-radius:8px; cursor:pointer;" onclick="window.open('${msg.imageUrl}', '_blank')"/></div>`;
+          }
+          
+          const messageClass = msg.senderId === myUserId ? 'bg-success text-white' : 'bg-white';
+          const status = msg.senderId === myUserId ? '<i class="fas fa-check text-light ms-1" style="font-size:10px;"></i>' : '';
+          
+          bubble.innerHTML = `
+            <div class="p-2 rounded-3 ${messageClass}" style="max-width:70%;">
+              ${showSenderName ? `<div style="font-size:0.75rem; opacity:0.8; margin-bottom:2px;">
+                <strong>${senderName}</strong>
+              </div>` : ''}
+              <div>${content}</div>
+              <div class="text-end" style="font-size:0.7rem; opacity:0.7; margin-top:4px;">
+                ${time} ${status}
+              </div>
+            </div>`;
+          
+          msgsDiv.appendChild(bubble);
+          lastSenderId = msg.senderId;
+          
+          // Add entrance animation
+          setTimeout(() => bubble.style.opacity = '1', index * 20);
+        });
+        
+        msgsDiv.scrollTop = msgsDiv.scrollHeight;
+        document.getElementById('chatStatus').textContent = 'Active now';
+        
+      } catch(e){
+        msgsDiv.innerHTML = `<div class='p-3 text-danger'><i class="fas fa-exclamation-triangle me-1"></i>${e.message}</div>`;
+        document.getElementById('chatStatus').textContent = 'Failed to load';
+        showNotification(e.message, 'error');
+      }
+    }
+
+    async function sendMessage(){
+      const input = document.getElementById('messageInput');
+      const imageInput = document.getElementById('messageImageInput');
+      const content = input.value.trim();
+      
+      console.log('Sending message:', {currentChat, myUserId, content});
+      
+      if(!content && (!imageInput.files || imageInput.files.length===0)) {
+        input.focus();
+        return;
+      }
+      if(!currentChat.itemId) return;
+      
+      // Prevent self-chat
+      if(myUserId === currentChat.otherUserId) {
+  showNotification('� This is your own item! You cannot chat with yourself.', 'info');
+        return;
+      }
+      
+      // Disable inputs during send
+      const sendBtn = document.getElementById('sendMessageBtn');
+      input.disabled = true;
+      sendBtn.disabled = true;
+      sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+      
+      try {
+        if(imageInput.files && imageInput.files.length > 0) {
+          console.log('Sending image message:', {
+            file: imageInput.files[0],
+            itemId: currentChat.itemId,
+            receiverId: currentChat.otherUserId,
+            content: content
+          });
+          
+          const fd = new FormData();
+          fd.append('itemId', String(currentChat.itemId));
+          fd.append('receiverId', String(currentChat.otherUserId));
+          if(content) fd.append('content', content);
+          fd.append('image', imageInput.files[0]);
+          
+          console.log('FormData created, sending to backend...');
+          
+          const res = await fetch('http://localhost:8080/api/user-chat/send-image', { 
+            method:'POST', 
+            headers:{ 'Authorization':'Bearer '+token }, 
+            body: fd 
+          });
+          
+          console.log('Image upload response:', res.status, res.statusText);
+          
+          if(!res.ok) {
+            const errorData = await res.json().catch(() => ({}));
+            console.error('Image upload error:', errorData);
+            throw new Error(errorData.message || 'Failed to send image');
+          }
+          
+          console.log('Image uploaded successfully');
+          imageInput.value='';
+        } else {
+          console.log('Sending text message:', {
+            itemId: currentChat.itemId,
+            receiverId: currentChat.otherUserId,
+            content: content
+          });
+          
+          const res = await fetch('http://localhost:8080/api/user-chat/send', { 
+            method:'POST', 
+            headers:{ 'Content-Type':'application/json','Authorization':'Bearer '+token }, 
+            body: JSON.stringify({ itemId: currentChat.itemId, receiverId: currentChat.otherUserId, content }) 
+          });
+          
+          console.log('Text message response:', res.status, res.statusText);
+          
+          if(!res.ok) {
+            const errorData = await res.json().catch(() => ({}));
+            console.error('Text message error:', errorData);
+            throw new Error(errorData.message || 'Failed to send message');
+          }
+        }
+        
+        input.value='';
+        await loadMessages();
+        loadConversations(); // Update conversation list
+        document.getElementById('chatStatus').textContent = 'Message sent';
+        
+      } catch(e){
+        document.getElementById('chatStatus').textContent = 'Failed to send';
+        showNotification(e.message, 'error');
+        console.error('Send error:', e);
+        
+      } finally {
+        input.disabled = false;
+        sendBtn.disabled = false;
+        sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i>';
+        input.focus();
+      }
+    }
+
+  // Smart refresh controls (auto-refresh disabled by default)
+  let autoRefreshEnabled = false;
+    let refreshInterval;
+    
+    function startMessageRefresh() {
+      if (refreshInterval) clearInterval(refreshInterval);
+      
+      refreshInterval = setInterval(() => {
+        if (autoRefreshEnabled && document.visibilityState === 'visible') {
+          if(currentChat.itemId) {
+            loadMessages();
+          }
+          loadConversations();
+        }
+      }, 10000); // Reduced frequency to 10 seconds for better performance
+    }
+    
+    // Pause refresh when page is not visible to save resources
+    document.addEventListener('visibilitychange', function() {
+      if (document.visibilityState === 'visible' && autoRefreshEnabled) {
+        startMessageRefresh();
+      } else if (document.visibilityState === 'hidden') {
+        clearInterval(refreshInterval);
+      }
+    });
+    
+    // Add manual refresh control
+    document.addEventListener('DOMContentLoaded', function() {
+      loadConversations();
+      
+      // Add refresh toggle button
+      const refreshControl = document.createElement('div');
+      refreshControl.innerHTML = `
+        <div class="position-fixed" style="top: 80px; right: 20px; z-index: 1000;">
+          <button id="messageRefreshToggle" class="btn btn-sm btn-outline-primary" onclick="toggleMessageRefresh()">
+            <i class="fas fa-sync-alt"></i>
+          </button>
+        </div>
+      `;
+      document.body.appendChild(refreshControl);
+      
+  // Do not start auto-refresh by default; user can enable via toggle
+    });
+    
+    // Global function for refresh toggle
+    window.toggleMessageRefresh = function() {
+      autoRefreshEnabled = !autoRefreshEnabled;
+      const btn = document.getElementById('messageRefreshToggle');
+      if (autoRefreshEnabled) {
+        btn.className = 'btn btn-sm btn-success';
+        startMessageRefresh();
+      } else {
+        btn.className = 'btn btn-sm btn-outline-secondary';
+        clearInterval(refreshInterval);
+      }
+    };
+  </script>
+</body>
+</html>

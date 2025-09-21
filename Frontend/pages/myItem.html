@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>AquaMart - My Items</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+<link rel="stylesheet" href="../assets/css/navigation.css"/>
+<link rel="stylesheet" href="../assets/css/responsive.css"/>
+<style>
+  body {
+    font-family: 'Segoe UI', sans-serif;
+    background: linear-gradient(to bottom right, #a6ffea, #596dcd);
+    min-height: 100vh;
+    margin: 0;
+  }
+  .main {
+    margin-left: 240px;
+    padding: 2rem;
+    min-height: 100vh;
+  }
+  .fish-card { background:white; border-radius:12px; box-shadow:0 2px 8px rgba(0,0,0,0.15); padding:16px; text-align:center; }
+  .fish-card img { width:100%; height:200px; object-fit:cover; border-radius:10px; }
+  .status-badge { padding:4px 10px; border-radius:12px; font-size:0.8rem; font-weight:600; }
+  .status-AVAILABLE { background-color: rgba(28, 200, 138, 0.2); color:#1cc88a; }
+  .status-ADOPTED { background-color: rgba(231, 74, 59,0.2); color:#e74a3b; }
+  .status-PENDING { background-color: rgba(246, 194, 62,0.2); color:#f6c23e; }
+  .status-NOT_AVAILABLE { background-color: rgba(108,117,125,0.15); color:#6c757d; }
+  .notification { position:fixed; top:20px; right:20px; padding:12px 18px; border-radius:5px; color:white; opacity:0; transform:translateY(-20px); transition: opacity 0.3s, transform 0.3s; z-index:1000; }
+  .notification.show { opacity:1; transform:translateY(0); }
+  .notification.success { background-color:#1cc88a; }
+  .notification.error { background-color:#e74a3b; }
+</style>
+</head>
+<body>
+
+  <!-- Sidebar -->
+<div class="sidebar d-flex flex-column">
+  <h4>🐡 <strong>AquaMart</strong></h4>
+    <nav class="nav flex-column mt-4">
+    <a class="nav-link" href="dashboard.html" data-page="dashboard">🏠 Dashboard</a>
+  <a class="nav-link" href="adoptFriend.html" data-page="adopt">💛 Buy a Friend</a>
+  <a class="nav-link" href="myItem.html" data-page="myItem">🐟 My Items</a>
+    <a class="nav-link" href="listings.html" data-page="listings">📄 Listings & Requests</a>
+    <a class="nav-link" href="messages.html" data-page="messages">💬 Messages</a>
+    <a class="nav-link" href="setting.html" data-page="setting">⚙️ Setting</a>
+    <a class="nav-link mt-auto" href="#" onclick="window.barkBuddyNav.logout(); return false;">🚪 Logout</a>
+    </nav>
+  </div>
+
+<!-- Main Content -->
+<div class="main">
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h3 class="m-0">🐟 My Items</h3>
+  <!-- Add New Fish Button -->
+  <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#itemModal">
+    <i class="fas fa-plus"></i> New Fish
+  </button>
+</div>
+
+<!-- Fish Cards -->
+<div id="itemsList" class="row g-4">
+  <div class="text-center py-4">Loading items...</div>
+</div>
+
+<!-- Fish Modal -->
+<div class="modal fade" id="itemModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+  <form id="itemForm" enctype="multipart/form-data">
+        <div class="modal-header">
+          <h5 class="modal-title">Add Item</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <input type="hidden" id="itemId">
+          <div class="mb-3">
+            <label class="form-label">Item Name</label>
+            <input type="text" class="form-control" id="itemName" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Status</label>
+            <select class="form-select" id="status" required>
+              <option value="">Select</option>
+              <option value="AVAILABLE">Available</option>
+              <option value="NOT_AVAILABLE">Not Available</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Item Image</label>
+            <input type="file" class="form-control" id="itemImage" accept="image/*">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-primary">Save Fish</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+
+<div id="notification" class="notification"></div>
+
+</div> <!-- End Main Content -->
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<!-- ✅ SweetAlert2 CDN -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="../assets/js/navigation.js"></script>
+<script>
+  const itemsList = document.getElementById('itemsList');
+  const itemForm = document.getElementById('itemForm');
+  const notification = document.getElementById('notification');
+  const token = localStorage.getItem('accessToken');
+  let editItemId = null;
+  let itemModal = new bootstrap.Modal(document.getElementById('itemModal'));
+
+  // Check login
+  if (!token) {
+    alert('Please log in first');
+    window.location.href = 'login.html';
+  }
+
+  // Notification function for this page
+  function showNotification(msg, type = 'success') {
+    notification.textContent = msg;
+    notification.className = 'notification show ' + type;
+    setTimeout(() => {
+      notification.className = 'notification';
+    }, 3000);
+  }
+
+  // Load Items
+  async function loadItems() {
+    try {
+      const res = await fetch('http://localhost:8080/api/items', { headers: { 'Authorization': 'Bearer ' + token } });
+      if (!res.ok) throw new Error(await res.text());
+      const items = await res.json();
+      renderItems(items);
+    } catch (e) {
+      console.error(e);
+      itemsList.innerHTML = `<div class="text-center py-4">Failed to load items: ${e.message}</div>`;
+    }
+  }
+
+  // Render Items
+  function renderItems(items) {
+    itemsList.innerHTML = '';
+    if (!items || items.length === 0) {
+      itemsList.innerHTML = '<div class="text-center py-4">No items yet.</div>';
+      return;
+    }
+    items.forEach(fish => {
+      const statusClass = 'status-' + fish.status;
+      itemsList.innerHTML += `
+        <div class="col-md-4">
+          <div class="fish-card">
+            <img src="${fish.imageUrl}" alt="${fish.itemName}">
+            <h5 class="mt-2">${fish.itemName}</h5>
+            <span class="status-badge ${statusClass}">${fish.status}</span>
+            <div class="mt-2">
+              <button class="btn btn-sm btn-warning me-1" onclick="startEdit(${fish.id})"><i class="fas fa-edit"></i></button>
+              <button class="btn btn-sm btn-danger me-1" onclick="deleteItem(${fish.id})"><i class="fas fa-trash"></i></button>
+            </div>
+          </div>
+        </div>
+      `;
+    });
+  }
+
+  // Fish Form Submit
+  itemForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const itemData = {
+      itemName: document.getElementById('itemName').value.trim(),
+      status: document.getElementById('status').value
+    };
+    if (!itemData.itemName || !itemData.status) {
+      showNotification('Please fill all fields', 'error'); return;
+    }
+    const formData = new FormData();
+    formData.append('fish', new Blob([JSON.stringify(itemData)], { type: 'application/json' }));
+    const file = document.getElementById('itemImage').files[0];
+    if (!editItemId && !file) { showNotification('Please choose an image', 'error'); return; }
+    if (file) formData.append('image', file);
+
+    try {
+      const url = editItemId ? `http://localhost:8080/api/items/${editItemId}` : 'http://localhost:8080/api/items/saveItem';
+      const method = editItemId ? 'PUT' : 'POST';
+      const res = await fetch(url, { method, headers: { 'Authorization': 'Bearer ' + token }, body: formData });
+      if (!res.ok) throw new Error(await res.text());
+      showNotification(editItemId ? 'Item updated!' : 'Item added!');
+      itemForm.reset(); editItemId = null; itemModal.hide();
+      loadItems();
+    } catch (err) {
+      console.error(err);
+      showNotification('Save failed: ' + err.message, 'error');
+    }
+  });
+
+  // Edit Fish
+  window.startEdit = async function (id) {
+    try {
+      const res = await fetch('http://localhost:8080/api/items', { headers: { 'Authorization': 'Bearer ' + token } });
+      const items = await res.json();
+      const item = items.find(d => d.id === id);
+      if (!item) return;
+      editItemId = id;
+      document.getElementById('itemName').value = item.itemName;
+      document.getElementById('status').value = item.status;
+      itemModal.show();
+    } catch (e) { console.error(e); }
+  }
+
+  // ✅ Delete Fish with SweetAlert2
+  window.deleteItem = function (id) {
+    Swal.fire({
+      title: 'Are you sure?',
+      text: "This item will be permanently deleted!",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Yes, delete it!'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        fetch(`http://localhost:8080/api/items/${id}`, { method: 'DELETE', headers: { 'Authorization': 'Bearer ' + token } })
+          .then(res => {
+            if (!res.ok) throw new Error();
+            showNotification('Item deleted');
+            loadItems();
+          })
+          .catch(() => showNotification('Delete failed', 'error'));
+      }
+    });
+  }
+
+  // Initialize page when DOM is loaded
+  document.addEventListener('DOMContentLoaded', function () {
+    loadItems();
+  });
+</script>
+</body>
+</html>
